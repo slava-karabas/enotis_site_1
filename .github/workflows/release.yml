@@ -48,15 +48,35 @@ jobs:
           TAG: ${{ steps.v.outputs.tag }}
         run: gh release create "$TAG" dist/* --target "$GITHUB_SHA" --title "Энотис $TAG" --notes-file <(php -r '$j=json_decode(file_get_contents("dist/latest.json"),true); foreach($j["notes"]["ru"]??[] as $n) echo "- $n\n";')
       # Выкладывается при каждом слиянии: если папку подключили позже, версия всё равно туда попадёт.
-      - name: На сервер обновлений
+      - name: Есть ли папка сервера обновлений
+        id: up
         env:
-          HOST: ${{ secrets.UPDATE_FTP_HOST || secrets.FTP_HOST }}
-          USER: ${{ secrets.UPDATE_FTP_USER || secrets.FTP_USER }}
-          PASS: ${{ secrets.UPDATE_FTP_PASSWORD || secrets.FTP_PASSWORD }}
           DIR: ${{ secrets.UPDATE_FTP_DIR }}
+          HOST: ${{ secrets.UPDATE_FTP_HOST || secrets.FTP_HOST }}
         run: |
-          if [ -z "$DIR" ] || [ -z "$HOST" ]; then echo "Нет UPDATE_FTP_DIR или FTP-входа — пропускаю"; exit 0; fi
-          # Сначала ZIP, последним latest.json: сайты не увидят версию раньше, чем файл.
-          for f in dist/enotis-*.zip dist/palomnik-site.zip dist/latest.json; do
-            curl -sS --ssl --ftp-create-dirs --user "$USER:$PASS" -T "$f" "ftp://$HOST/${DIR%/}/"
-          done
+          if [ -n "$DIR" ] && [ -n "$HOST" ]; then echo "ready=yes" >> "$GITHUB_OUTPUT"; else echo "Нет UPDATE_FTP_DIR или FTP-входа — пропускаю"; fi
+          # latest.json кладём отдельным шагом после ZIP: сайты не увидят версию раньше, чем файл.
+          mkdir -p dist-zip dist-json && mv dist/latest.json dist-json/ && mv dist/*.zip dist-zip/
+      # Тот же способ входа по FTP, что и в deploy.yml.
+      - name: На сервер обновлений — ZIP
+        if: steps.up.outputs.ready == 'yes'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.UPDATE_FTP_HOST || secrets.FTP_HOST }}
+          username: ${{ secrets.UPDATE_FTP_USER || secrets.FTP_USER }}
+          password: ${{ secrets.UPDATE_FTP_PASSWORD || secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.UPDATE_FTP_DIR }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          local-dir: dist-zip/
+          state-name: .ftp-zip-sync.json
+      - name: На сервер обновлений — latest.json
+        if: steps.up.outputs.ready == 'yes'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.UPDATE_FTP_HOST || secrets.FTP_HOST }}
+          username: ${{ secrets.UPDATE_FTP_USER || secrets.FTP_USER }}
+          password: ${{ secrets.UPDATE_FTP_PASSWORD || secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.UPDATE_FTP_DIR }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          local-dir: dist-json/
+          state-name: .ftp-json-sync.json
