@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__);
 $out = rtrim($argv[1] ?? $root . '/dist', '/');
-$base = rtrim($argv[2] ?? 'https://update.enotis.ru', '/');
+$base = rtrim($argv[2] ?? 'https://update.enotis.shop', '/');
 
 $src = (string) file_get_contents($root . '/app/bootstrap.php');
 if (!preg_match("~const ENGINE_VERSION = '(\d+\.\d+\.\d+)'~", $src, $m)) {

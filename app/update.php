@@ -15,7 +15,7 @@ declare(strict_types=1);
  * ENOTIS_UPDATE_URL — другой адрес latest.json (только проверки; разрешает http://127.0.0.1).
  */
 
-const UPDATE_URL = 'https://update.enotis.ru/latest.json';
+const UPDATE_URL = 'https://update.enotis.shop/latest.json';
 const UPDATE_DIR = DATA_DIR . '/update';
 const UPDATE_MAINTENANCE = UPDATE_DIR . '/maintenance';
 const UPDATE_CHECK_HOURS = 12;
