@@ -1,7 +1,9 @@
 # Релиз движка по тегу vX.Y.Z (спецификация 2.1, раздел 14.2):
 # ZIP кода + latest.json + ZIP «Паломника» → релиз на GitHub и папка update.enotis.ru по FTP.
-# Секреты для сервера обновлений: UPDATE_FTP_HOST, UPDATE_FTP_USER, UPDATE_FTP_PASSWORD, UPDATE_FTP_DIR.
-# Пока их нет, файлы остаются только в релизе на GitHub.
+# Сервер обновлений: секрет UPDATE_FTP_DIR — папка update.enotis.ru на хостинге (например /www/update.enotis.ru).
+# Вход по FTP — тот же, что у выкладки тестового сайта (FTP_HOST, FTP_USER, FTP_PASSWORD);
+# если для update нужен другой вход — UPDATE_FTP_HOST, UPDATE_FTP_USER, UPDATE_FTP_PASSWORD.
+# Пока UPDATE_FTP_DIR нет, файлы остаются только в релизе на GitHub.
 name: release
 
 on:
@@ -32,12 +34,12 @@ jobs:
         run: gh release create "$GITHUB_REF_NAME" dist/* --title "Энотис $GITHUB_REF_NAME" --notes-file <(php -r '$j=json_decode(file_get_contents("dist/latest.json"),true); foreach($j["notes"]["ru"]??[] as $n) echo "- $n\n";')
       - name: На сервер обновлений
         env:
-          HOST: ${{ secrets.UPDATE_FTP_HOST }}
-          USER: ${{ secrets.UPDATE_FTP_USER }}
-          PASS: ${{ secrets.UPDATE_FTP_PASSWORD }}
+          HOST: ${{ secrets.UPDATE_FTP_HOST || secrets.FTP_HOST }}
+          USER: ${{ secrets.UPDATE_FTP_USER || secrets.FTP_USER }}
+          PASS: ${{ secrets.UPDATE_FTP_PASSWORD || secrets.FTP_PASSWORD }}
           DIR: ${{ secrets.UPDATE_FTP_DIR }}
         run: |
-          if [ -z "$HOST" ]; then echo "Секретов UPDATE_FTP_* нет — пропускаю"; exit 0; fi
+          if [ -z "$DIR" ] || [ -z "$HOST" ]; then echo "Нет UPDATE_FTP_DIR или FTP-входа — пропускаю"; exit 0; fi
           # Сначала ZIP, последним latest.json: сайты не увидят версию раньше, чем файл.
           for f in dist/enotis-*.zip dist/palomnik-site.zip dist/latest.json; do
             curl -sS --ssl --ftp-create-dirs --user "$USER:$PASS" -T "$f" "ftp://$HOST/${DIR%/}/"
