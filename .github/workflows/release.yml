@@ -1,7 +1,7 @@
 # Релиз движка (спецификация 2.1, раздел 14.2). Сам: после слияния в main, если в коде новая
 # версия ENGINE_VERSION, для которой ещё нет релиза. Вручную — тегом vX.Y.Z.
-# ZIP кода + latest.json + ZIP «Паломника» → релиз на GitHub и папка update.enotis.ru по FTP.
-# Сервер обновлений: секрет UPDATE_FTP_DIR — папка update.enotis.ru на хостинге (например /www/update.enotis.ru).
+# ZIP кода + latest.json + ZIP «Паломника» → релиз на GitHub и папка update.enotis.shop по FTP.
+# Сервер обновлений: секрет UPDATE_FTP_DIR — папка update.enotis.shop на хостинге (например /www/update.enotis.shop).
 # Вход по FTP — тот же, что у выкладки тестового сайта (FTP_HOST, FTP_USER, FTP_PASSWORD);
 # если для update нужен другой вход — UPDATE_FTP_HOST, UPDATE_FTP_USER, UPDATE_FTP_PASSWORD.
 # Пока UPDATE_FTP_DIR нет, файлы остаются только в релизе на GitHub.
