@@ -1,4 +1,5 @@
-# Релиз движка по тегу vX.Y.Z (спецификация 2.1, раздел 14.2):
+# Релиз движка (спецификация 2.1, раздел 14.2). Сам: после слияния в main, если в коде новая
+# версия ENGINE_VERSION, для которой ещё нет релиза. Вручную — тегом vX.Y.Z.
 # ZIP кода + latest.json + ZIP «Паломника» → релиз на GitHub и папка update.enotis.ru по FTP.
 # Сервер обновлений: секрет UPDATE_FTP_DIR — папка update.enotis.ru на хостинге (например /www/update.enotis.ru).
 # Вход по FTP — тот же, что у выкладки тестового сайта (FTP_HOST, FTP_USER, FTP_PASSWORD);
@@ -8,6 +9,7 @@ name: release
 
 on:
   push:
+    branches: [main]
     tags: ['v*.*.*']
 
 permissions:
@@ -22,16 +24,30 @@ jobs:
         with:
           php-version: '8.1'
           extensions: pdo_sqlite, zip
-      - name: Тег совпадает с версией движка
+      - name: Версия и нужен ли релиз
+        id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           v=$(grep -o "ENGINE_VERSION = '[0-9.]*'" app/bootstrap.php | grep -o "[0-9][0-9.]*")
-          test "v$v" = "$GITHUB_REF_NAME" || { echo "Тег $GITHUB_REF_NAME, а в коде $v"; exit 1; }
+          echo "tag=v$v" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            test "v$v" = "$GITHUB_REF_NAME" || { echo "Тег $GITHUB_REF_NAME, а в коде $v"; exit 1; }
+          fi
+          if gh release view "v$v" >/dev/null 2>&1; then
+            echo "Релиз v$v уже есть — пропускаю"; echo "need=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "need=yes" >> "$GITHUB_OUTPUT"
+          fi
       - name: Сборка
         run: php bin/build-release.php dist
       - name: Релиз на GitHub
+        if: steps.v.outputs.need == 'yes'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "Энотис $GITHUB_REF_NAME" --notes-file <(php -r '$j=json_decode(file_get_contents("dist/latest.json"),true); foreach($j["notes"]["ru"]??[] as $n) echo "- $n\n";')
+          TAG: ${{ steps.v.outputs.tag }}
+        run: gh release create "$TAG" dist/* --target "$GITHUB_SHA" --title "Энотис $TAG" --notes-file <(php -r '$j=json_decode(file_get_contents("dist/latest.json"),true); foreach($j["notes"]["ru"]??[] as $n) echo "- $n\n";')
+      # Выкладывается при каждом слиянии: если папку подключили позже, версия всё равно туда попадёт.
       - name: На сервер обновлений
         env:
           HOST: ${{ secrets.UPDATE_FTP_HOST || secrets.FTP_HOST }}
