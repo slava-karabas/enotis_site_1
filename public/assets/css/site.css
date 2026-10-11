@@ -86,12 +86,13 @@ button { font: inherit; }
 .card { display: flex; flex-direction: column; width: 100%; background: var(--c-paper); border-radius: var(--radius); overflow: hidden;
   text-decoration: none; color: var(--c-ink); box-shadow: var(--shadow-soft); transition: transform .15s, box-shadow .15s; }
 a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-.card__plate { flex: 1; display: flex; align-items: flex-end; gap: 12px; padding: 16px 18px 18px; }
+/* Текст от верха — заголовки в ряду на одной высоте; стрелка по низу. */
+.card__plate { flex: 1; display: flex; align-items: flex-start; gap: 12px; padding: 16px 18px 18px; }
 .card__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .card__title { font-family: var(--font-head); font-weight: 600; font-size: 20px; line-height: 1.25; color: var(--c-ink);
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card__sub { font-size: 14px; color: var(--c-mute); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.card__icon { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 18px;
+.card__icon { flex: none; align-self: flex-end; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 18px;
   color: var(--c-action); border: 1.5px solid var(--c-action); }
 .tiles--compact .card__title { font-size: 17px; }
 .card--wine .card__title { font-size: 17px; }
