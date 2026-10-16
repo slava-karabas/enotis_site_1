@@ -46,12 +46,17 @@ $cookieDoc = doc('cookies');
 <?php endif ?>
   <?= favicon_tags() ?>
 
-  <link rel="preload" href="/assets/fonts/golos-400-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/playfair-600-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/fonts/fonts.css?v=<?= ENGINE_VERSION ?>">
-  <link rel="stylesheet" href="/assets/css/theme.css?v=<?= ENGINE_VERSION ?>">
-  <link rel="stylesheet" href="/assets/css/site.css?v=<?= ENGINE_VERSION ?>">
-  <script src="/assets/js/site.js?v=<?= ENGINE_VERSION ?>" defer></script>
+<?php if (current_lang() === 'ka'): ?>
+  <link rel="preload" href="/assets/fonts/noto-sans-georgian-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/noto-serif-georgian-600.woff2" as="font" type="font/woff2" crossorigin>
+<?php else: $fontSubset = current_lang() === 'ru' ? 'cyrillic' : 'latin'; ?>
+  <link rel="preload" href="/assets/fonts/golos-400-<?= $fontSubset ?>.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/playfair-600-<?= $fontSubset ?>.woff2" as="font" type="font/woff2" crossorigin>
+<?php endif ?>
+  <link rel="stylesheet" href="/assets/fonts/fonts.css?v=<?= e(asset_version('/assets/fonts/fonts.css')) ?>">
+  <link rel="stylesheet" href="/assets/css/theme.css?v=<?= e(asset_version('/assets/css/theme.css')) ?>">
+  <link rel="stylesheet" href="/assets/css/site.css?v=<?= e(asset_version('/assets/css/site.css')) ?>">
+  <script src="/assets/js/site.js?v=<?= e(asset_version('/assets/js/site.js')) ?>" defer></script>
 <?php if (!preview_mode() && ($code = setting('counter_code'))): ?>
   <?= $code /* код счётчика из админки, вставляется как есть (раздел 9.2) */ ?>
 <?php endif ?>

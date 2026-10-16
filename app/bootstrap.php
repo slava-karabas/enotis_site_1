@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-const ENGINE_VERSION = '0.8.0';
+const ENGINE_VERSION = '0.8.1';
 const APP_DIR  = __DIR__;
 define('ROOT_DIR', dirname(__DIR__));
 // ENOTIS_DATA — другая папка данных (проверки в CI, вторая копия сайта на одной машине).
