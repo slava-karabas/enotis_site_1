@@ -16,7 +16,11 @@ permissions:
   contents: write
 
 jobs:
+  check:
+    uses: ./.github/workflows/check.yml
+
   release:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,6 +44,7 @@ jobs:
             echo "need=yes" >> "$GITHUB_OUTPUT"
           fi
       - name: Сборка
+        if: steps.v.outputs.need == 'yes'
         run: php bin/build-release.php dist
       - name: Релиз на GitHub
         if: steps.v.outputs.need == 'yes'
@@ -49,6 +54,7 @@ jobs:
         run: gh release create "$TAG" dist/* --target "$GITHUB_SHA" --title "Энотис $TAG" --notes-file <(php -r '$j=json_decode(file_get_contents("dist/latest.json"),true); foreach($j["notes"]["ru"]??[] as $n) echo "- $n\n";')
       # Выкладывается при каждом слиянии: если папку подключили позже, версия всё равно туда попадёт.
       - name: Есть ли папка сервера обновлений
+        if: steps.v.outputs.need == 'yes'
         id: up
         env:
           DIR: ${{ secrets.UPDATE_FTP_DIR }}

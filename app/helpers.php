@@ -106,3 +106,10 @@ function render(string $page, array $vars = []): void
     $vars['content'] = view($page, $vars);
     echo view('layout', $vars);
 }
+
+/** Версия локального CSS/JS: обновление файла меняет URL и сбрасывает кэш. */
+function asset_version(string $path): string
+{
+    $file = ROOT_DIR . '/public/' . ltrim($path, '/');
+    return ENGINE_VERSION . '.' . (is_file($file) ? (string) filemtime($file) : '0');
+}

@@ -229,7 +229,10 @@ body.is-locked { overflow: hidden; }
 /* Слои Leaflet не вылезают поверх шапки и окон. */
 .map__box, .minimap { isolation: isolate; }
 /* Вертикальное фото в поп-апе не занимает весь экран. */
-.pp__photo.frame--4x5 { aspect-ratio: auto; height: min(58vh, 560px); }
+.pp__photo.frame--4x5 { aspect-ratio: auto; height: min(58vh, 560px); height: min(58dvh, 560px); }
+/* Ограничиваем размер окна, сохраняя выбранный кадр целиком. */
+.pp__photo.frame--4x5 img { object-fit: contain; }
+.pp__photo.frame--4x5:not(.frame--wine) { background: var(--c-paper); }
 
 /* ---------- Табы (раздел 5.4): «пилюли» по центру, активная — цветом навигации ---------- */
 .tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: var(--blk-gap); margin-bottom: calc(var(--blk-gap) * -.4); }
