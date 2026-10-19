@@ -139,12 +139,18 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 .svc__price { margin: 6px 0 16px; }
 .svc__note { color: var(--c-mute); font-size: 14px; }
 
-/* Страница плитки (раздел 6.1) */
-.tpage__top { display: grid; gap: 24px; padding-top: 28px; max-width: 980px; }
-.tpage__photo { border-radius: var(--radius); }
+/* Страница плитки (раздел 6.1): общий край с лентой, текст обтекает фото. */
+.tpage__top { display: flow-root; padding-top: 28px; }
+.tpage__photo { border-radius: var(--radius); margin-bottom: 24px; }
+.tpage__text { min-width: 0; overflow-wrap: break-word; }
 .tpage__text h1 { font-size: var(--fs-title-l); margin-bottom: 14px; }
-@media (min-width: 768px) { .tpage__top { grid-template-columns: 1fr 1fr; align-items: start; gap: 36px; padding-top: 40px; } }
-.tpage__place { max-width: 980px; margin-top: 24px; }
+@media (min-width: 768px) { .tpage__top { padding-top: 40px; } }
+@media (min-width: 1024px) {
+  .tpage__photo { float: left; width: calc((100% - 36px) / 2); margin: 0 36px 20px 0; }
+  .tpage__text { display: contents; }
+  .tpage__text h1 { font-size: clamp(36px, 3.2vw, 48px); }
+}
+.tpage__place { margin-top: 24px; }
 
 /* «Как добраться» */
 .place { margin-top: 20px; }
