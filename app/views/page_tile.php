@@ -6,7 +6,7 @@ $hasPlace = $t['place'] || has_coords($t);
 <article class="tpage">
   <header class="tpage__top wrap"<?= eid($t['id']) ?>>
 <?php if ($t['photo']): ?>
-    <div class="tpage__photo frame frame--3x2"><?= photo_img($t['photo'], $t['title'], false, true, '(min-width: 768px) 480px, 100vw') ?></div>
+    <div class="tpage__photo frame frame--3x2"><?= photo_img($t['photo'], $t['title'], false, true, '(min-width: 1440px) 674px, (min-width: 1024px) calc((100vw - 92px) / 2), (min-width: 600px) calc(100vw - 56px), calc(100vw - 32px)') ?></div>
 <?php endif ?>
     <div class="tpage__text">
 <?php if ($eyebrow = implode(' · ', array_filter([$tab['title'] ?? null, $t['subtitle']]))): ?>
