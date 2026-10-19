@@ -6,8 +6,8 @@ $tiles = visible_children($b);
 $GLOBALS['eager'] ??= 3;
 // Бейдж таба на плитках уровня 1 в ленте таба; на адресе одного таба его нет (раздел 5.4).
 $badge = ($b['section_id'] !== null && $b['parent_id'] === null && !single_tab()) ? (sections()[$b['section_id']]['title'] ?? null) : null;
-$sizes = $size === 'large' ? '(min-width: 1024px) 360px, (min-width: 600px) 50vw, 100vw'
-                           : '(min-width: 1024px) 270px, (min-width: 600px) 33vw, 50vw';
+$sizes = $size === 'large' ? '(min-width: 1440px) 446px, (min-width: 1024px) calc((100vw - 104px) / 3), (min-width: 600px) calc((100vw - 80px) / 2), calc(100vw - 32px)'
+                           : '(min-width: 1440px) 328px, (min-width: 1024px) calc((100vw - 128px) / 4), (min-width: 600px) calc((100vw - 104px) / 3), calc((100vw - 56px) / 2)';
 ?>
 <section class="wrap blk tiles tiles--<?= e($size) ?><?= $wine ? ' tiles--wine' : '' ?>"<?= eid($b['id']) ?>>
 <?php if ($b['title']): ?>
