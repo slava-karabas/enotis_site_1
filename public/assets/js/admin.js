@@ -776,7 +776,7 @@
         b.tiles.forEach(function (tl) { if (tl.photo) { tl.photo.crop = null; tl.photo._thumb = null; } });
         changed(); renderForm();
       }, b.tiles.length ? t('hint.kind_change') : null));
-      f.appendChild(seg(t('field.size'), [['large', t('size.tiles_large')], ['compact', t('size.tiles_compact')]], b.size, function (v) { b.size = v; changed(); renderForm(); }));
+      if (b.kind !== 'wine') f.appendChild(seg(t('field.size'), [['large', t('size.tiles_large')], ['compact', t('size.tiles_compact')]], b.size, function (v) { b.size = v; changed(); renderForm(); }));
       if (b.kind === 'wine') f.appendChild(h('p', { class: 'hint', text: t('hint.wine_frame') }));
       else f.appendChild(seg(t('field.frame'), [['4:5', t('frame.4:5')], ['3:2', t('frame.3:2')]], b.aspect, function (v) {
         if (v === b.aspect) return;

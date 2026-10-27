@@ -1,6 +1,6 @@
 <?php
 $wine = $b['tiles_kind'] === 'wine';
-$size = $b['tiles_size'] ?: ($wine ? 'compact' : 'large');
+$size = $wine ? 'compact' : ($b['tiles_size'] ?: 'large');
 $frame = $wine ? '4x5' : str_replace(':', 'x', $b['frame'] ?: '4:5');
 $tiles = visible_children($b);
 $filter=panel_block_extension($b);
@@ -24,11 +24,11 @@ $sizes = $size === 'large' ? '(min-width: 1440px) 446px, (min-width: 1024px) cal
     $attr = $opens ? ' href="' . e(tile_url($t)) . '"' . ($opens === 'popup' ? ' data-popup-link="' . (int) $t['id'] . '"' : '') : '';
 ?>
     <li<?= eid($t['id']) ?> data-filter-values="<?=e(json_encode(panel_block_extension($t)['values']??[]))?>">
-      <<?= $tag ?> class="card<?= $wine ? ' card--wine' : '' ?>"<?= $attr ?>>
+      <<?= $tag ?> class="card<?= $wine ? ' card--wine product-card' : '' ?>"<?= $attr ?>>
 <?php if ($t['photo']): ?>
-        <span class="frame frame--<?= $frame ?><?= $wine ? ' frame--wine' : '' ?>"><?= photo_img($t['photo'], $t['title'], $lazy, false, $sizes) ?><?php if ($badge && !$wine): ?><span class="badge"><?= e($badge) ?></span><?php endif ?></span>
+        <span class="frame frame--<?= $frame ?><?= $wine ? ' frame--wine product-image' : '' ?>"><?= photo_img($t['photo'], $t['title'], $lazy, false, $sizes) ?><?php if ($badge && !$wine): ?><span class="badge"><?= e($badge) ?></span><?php endif ?></span>
 <?php elseif ($wine): ?>
-        <span class="frame frame--4x5 frame--wine"><?= view('bottle') ?></span>
+        <span class="frame frame--4x5 frame--wine product-image"><?= view('bottle') ?></span>
 <?php endif ?>
         <span class="card__plate">
           <span class="card__text">
