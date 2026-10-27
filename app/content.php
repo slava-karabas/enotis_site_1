@@ -6,8 +6,7 @@ declare(strict_types=1);
  * Дерево: блоки страницы → плитки внутри блока Плитки → блоки страницы плитки.
  */
 
-const I18N_FIELDS = ['eyebrow', 'title', 'subtitle', 'body', 'place', 'grape', 'button_label',
-                     'recipient', 'pay_purpose', 'price_note', 'seo_title', 'seo_description'];
+const I18N_FIELDS = ['eyebrow', 'title', 'subtitle', 'body', 'place', 'grape', 'price_note', 'seo_title', 'seo_description'];
 
 /**
  * Все элементы сайта деревом. Тексты — на текущем языке (кэш на каждый язык: sitemap обходит все).
@@ -34,6 +33,7 @@ function content_tree(): array
 
     $nodes = [];
     foreach ($rows as $r) {
+        if($r['type']==='pay')continue;
         $id = (int) $r['id'];
         $n = $r;
         $n['id'] = $id;
@@ -249,8 +249,7 @@ function is_visible(array $n): bool
     return match ($n['type']) {
         'text'           => $n['eyebrow'] || $n['title'] || $n['subtitle'] || $n['body'],
         'tile'           => (bool) $n['title'],
-        'pay'            => $n['title'] && $n['button_label'] && pay_methods((int) $n['id']),
-        'service'        => $n['title'] && $n['button_label'] && $n['link_url'],
+        'service'        => (bool) $n['title'],
         'tiles'          => (bool) visible_children($n),
         'map'            => (bool) map_points($n),
         default          => true,   // photo, tabs
@@ -386,25 +385,6 @@ function map_points(array $mapBlock): array
         }
     }
     return $points;
-}
-
-/** Включённые способы оплаты блока, с подписями на текущем языке. */
-function pay_methods(int $elementId): array
-{
-    static $cache = [];
-    $all = &$cache[current_lang()];
-    if ($all === null) {
-        $all = [];
-        $st = db()->prepare('SELECT m.*, i.label FROM pay_methods m
-            LEFT JOIN pay_method_i18n i ON i.method_id = m.id AND i.lang = ?
-            WHERE m.enabled = 1 ORDER BY m.position, m.id');
-        $st->execute([current_lang()]);
-        foreach ($st->fetchAll() as $m) {
-            $m['req'] = $m['req_json'] ? (json_decode($m['req_json'], true) ?: []) : [];
-            $all[(int) $m['element_id']][] = $m;
-        }
-    }
-    return $all[$elementId] ?? [];
 }
 
 /** Владелец (оператор) ленты: подвал и окно оплаты. */

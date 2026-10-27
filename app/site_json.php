@@ -20,10 +20,8 @@ const FIELD_MAX = [
     'tile'     => ['title' => 45, 'subtitle' => 90, 'text' => 3000, 'place' => 140, 'seo_title' => 60, 'seo_description' => 160],
     'wine'     => ['title' => 60, 'subtitle' => 90, 'grape' => 60, 'text' => 3000],
     'map'      => ['title' => 60],
-    'pay'      => ['title' => 60, 'text' => 300, 'button' => 30, 'recipient' => 100],
-    'service'  => ['title' => 60, 'text' => 500, 'price_note' => 40, 'button' => 30, 'recipient' => 100],
+    'service'  => ['title' => 60, 'text' => 500, 'price_note' => 40],
     'settings' => ['site_title' => 40, 'seo_title' => 60, 'seo_description' => 160],
-    'method'   => ['label' => 40],
     'tab'      => ['title' => 30],
     'domain'   => ['site_title' => 40],
 ];
@@ -94,22 +92,6 @@ function site_export(): array
     foreach ($pdo->query('SELECT * FROM photos')->fetchAll() as $p) {
         $photos[(int) $p['id']] = $p;
     }
-    $methods = [];
-    $mLabels = [];
-    foreach ($pdo->query('SELECT * FROM pay_method_i18n')->fetchAll() as $r) {
-        if ($r['label'] !== null && $r['label'] !== '') {
-            $mLabels[(int) $r['method_id']][$r['lang']] = $r['label'];
-        }
-    }
-    foreach ($pdo->query('SELECT * FROM pay_methods ORDER BY position, id')->fetchAll() as $m) {
-        $id = (int) $m['id'];
-        $methods[(int) $m['element_id']][] = [
-            'id' => $id, 'kind' => $m['kind'], 'provider' => $m['provider'] ?: $m['kind'], 'on' => (bool) $m['enabled'],
-            'url' => (string) $m['url'], 'image' => (string) $m['qr_path'],
-            'label' => (object) ($mLabels[$id] ?? []),
-            'req' => $m['req_json'] ? (object) (json_decode($m['req_json'], true) ?: []) : null,
-        ];
-    }
     // Дети по родителю; блоки главной — 'r0', ленты таба — 'r{id таба}'.
     $kids = [];
     foreach ($rows as $r) {
@@ -133,10 +115,11 @@ function site_export(): array
                       'site_title' => (object) ($domTitles[$d['host']] ?? [])];
     }
 
-    $ctx = ['kids' => $kids, 'texts' => $texts, 'photos' => $photos, 'methods' => $methods,
+    $ctx = ['kids' => $kids, 'texts' => $texts, 'photos' => $photos,
             'sections' => $pdo->query('SELECT * FROM sections ORDER BY position, id')->fetchAll(), 'tab_titles' => $tabTitles];
     return [
         'format'    => 3,
+        'product'   => ENGINE_PRODUCT,
         'engine'    => ENGINE_VERSION,
         'languages' => ['main' => $main, 'on' => $on],
         'settings'  => [
@@ -144,7 +127,6 @@ function site_export(): array
             'seo_title'       => (object) ($setI18n['seo_title'] ?? []),
             'seo_description' => (object) ($setI18n['seo_description'] ?? []),
             'currency'        => $set['currency'] ?? 'RUB',
-            'req_format'      => $set['req_format'] ?? 'RU',
             'operator'        => isset($set['operator_id']) && $set['operator_id'] !== '' ? (int) $set['operator_id'] : null,
             'maps'            => $set['maps'] ?? 'google',
             'show_prices'     => ($set['show_prices'] ?? '1') === '1',
@@ -169,9 +151,10 @@ function export_blocks(int|string $parentId, array $ctx): array
 {
     $out = [];
     foreach ($ctx['kids'][$parentId] ?? [] as $r) {
+        if($r['type']==='pay')continue;
         $id = (int) $r['id'];
         $tx = fn(string $f) => (object) ($ctx['texts'][$id][$f] ?? []);
-        $b = ['id' => $id, 'type' => $r['type'], 'hidden' => (bool) $r['hidden']];
+        $b = ['id' => $id, 'type' => $r['type'], 'hidden' => (bool) $r['hidden'], 'extension'=>panel_block_extension($r)];
         switch ($r['type']) {
             case 'text':
                 $b += ['eyebrow' => $tx('eyebrow'), 'title' => $tx('title'), 'title_size' => $r['title_size'] ?: 'm',
@@ -190,14 +173,9 @@ function export_blocks(int|string $parentId, array $ctx): array
             case 'map':
                 $b += ['title' => $tx('title')];
                 break;
-            case 'pay':
-                $b += ['title' => $tx('title'), 'text' => $tx('body'), 'button' => $tx('button_label'),
-                       'recipient' => $tx('recipient'), 'methods' => $ctx['methods'][$id] ?? []];
-                break;
             case 'service':
                 $b += ['title' => $tx('title'), 'text' => $tx('body'), 'price' => $r['price'] !== null ? (float) $r['price'] : null,
-                       'price_note' => $tx('price_note'), 'button' => $tx('button_label'), 'url' => (string) $r['link_url'],
-                       'recipient' => $tx('recipient')];
+                       'price_note' => $tx('price_note')];
                 break;
             case 'tabs':
                 $b['tabs'] = export_tabs($ctx);
@@ -215,7 +193,7 @@ function export_tabs(array $ctx): array
     foreach ($ctx['sections'] as $s) {
         $id = (int) $s['id'];
         $out[] = ['id' => $id, 'slug' => $s['slug'], 'title' => (object) ($ctx['tab_titles'][$id] ?? []), 'hidden' => (bool) $s['hidden'],
-                  'currency' => $s['currency'], 'req_format' => $s['req_format'],
+                  'currency' => $s['currency'],
                   'operator' => $s['operator_id'] !== null ? (int) $s['operator_id'] : null,
                   'maps' => $s['maps'], 'show_prices' => (bool) $s['show_prices'], 'blocks' => export_blocks('r' . $id, $ctx)];
     }
@@ -229,7 +207,7 @@ function export_tiles(int $blockId, bool $wine, array $ctx): array
         $id = (int) $r['id'];
         $tx = fn(string $f) => (object) ($ctx['texts'][$id][$f] ?? []);
         $t = ['id' => $id, 'hidden' => (bool) $r['hidden'], 'slug' => $r['slug'], 'title' => $tx('title'),
-              'subtitle' => $tx('subtitle'), 'text' => $tx('body'), 'photo' => export_photo($r['photo_id'], $ctx)];
+              'subtitle' => $tx('subtitle'), 'text' => $tx('body'), 'photo' => export_photo($r['photo_id'], $ctx), 'extension'=>panel_block_extension($r)];
         if ($wine) {
             $t += ['grape' => $tx('grape'), 'vintage' => $r['vintage'] !== null ? (int) $r['vintage'] : null,
                    'wine_color' => $r['wine_color'], 'wine_sweet' => $r['wine_sweet'],
@@ -291,6 +269,7 @@ function site_validate(array $site): array
             $errors[] = ['id' => 'operators', 'code' => 'err.too_long', 'n' => 120];
         }
     }
+    if (payment_data_present($site)) $errors[] = ['id' => 'site', 'code' => 'err.bad_type'];
     validate_blocks($site['blocks'] ?? [], 0, $ctx, true);
     $tabIds = [];
     foreach ($site['blocks'] ?? [] as $b) {
@@ -340,57 +319,29 @@ function validate_blocks(array $blocks, int $level, array $ctx, bool $home = fal
             validate_tabs($b['tabs'] ?? [], $ctx);
             continue;
         }
-        if (!in_array($type, ['text', 'photo', 'tiles', 'map', 'pay', 'service'], true)) {
+        if (!in_array($type, ['text', 'photo', 'tiles', 'map', 'service'], true)) {
             $ctx['errors'][] = ['id' => $id, 'code' => 'err.bad_type'];
             continue;
         }
-        if (in_array($type, ['map', 'pay'], true)) {
+        if (in_array($type, ['map'], true)) {
             if (isset($once[$type])) {
                 $ctx['errors'][] = ['id' => $id, 'code' => 'err.one_' . $type];
             }
             $once[$type] = true;
         }
+        try { panel_extension($b['extension']??null); } catch(InvalidArgumentException $e) { $ctx['errors'][]=['id'=>$id,'code'=>'err.bad_type']; }
         $hidden = !empty($b['hidden']);
         check_lengths($type, $id, $b, $ctx);
         if ($type === 'service') {
-            $u = trim((string) ($b['url'] ?? ''));
-            if ($u === '' && !$hidden) {
-                $ctx['errors'][] = ['id' => $id, 'field' => 'url', 'code' => 'err.service_url'];
-            } elseif ($u !== '' && !link_ok($u, false)) {
-                $ctx['errors'][] = ['id' => $id, 'field' => 'url', 'code' => 'err.https'];
-            }
             if (isset($b['price']) && $b['price'] !== null && (!is_numeric($b['price']) || $b['price'] < 0)) {
                 $ctx['errors'][] = ['id' => $id, 'field' => 'price', 'code' => 'err.price'];
-            }
-        }
-        if ($type === 'pay') {
-            $kinds = [];
-            $anyOn = false;
-            foreach ($b['methods'] ?? [] as $m) {
-                $k = $m['kind'] ?? '';
-                if (in_array($k, ['qr', 'requisites'], true) && isset($kinds[$k])) {
-                    $ctx['errors'][] = ['id' => $id, 'code' => 'err.one_' . $k];
-                }
-                $kinds[$k] = true;
-                $anyOn = $anyOn || !empty($m['on']);
-                if ($k === 'link' && trim((string) ($m['url'] ?? '')) !== '' && !link_ok($m['url'], false)) {
-                    $ctx['errors'][] = ['id' => $id, 'field' => 'methods', 'code' => 'err.https'];
-                }
-                check_lengths('method', $id, $m, $ctx);
-                if ($k === 'requisites' && !empty($m['on'])) {
-                    foreach (req_warnings($m['req'] ?? []) as $w) {
-                        $ctx['warnings'][] = ['id' => $id, 'field' => 'methods', 'code' => $w];
-                    }
-                }
-            }
-            if (!$hidden && !$anyOn) {
-                $ctx['warnings'][] = ['id' => $id, 'code' => 'warn.pay_no_methods'];
             }
         }
         if ($type === 'tiles') {
             $wine = ($b['kind'] ?? 'normal') === 'wine';
             foreach ($b['tiles'] ?? [] as $t) {
                 $tid = $t['id'] ?? null;
+                try { panel_extension($t['extension']??null); } catch(InvalidArgumentException $e) { $ctx['errors'][]=['id'=>$tid,'code'=>'err.bad_type']; }
                 check_lengths($wine ? 'wine' : 'tile', $tid, $t, $ctx);
                 if (!$wine) {
                     check_coords($t, $ctx);
@@ -495,28 +446,6 @@ function link_ok(string $url, bool $messenger): bool
     return $messenger && preg_match('~^(viber|whatsapp)://\S+$~i', $url);
 }
 
-/** Проверки реквизитов по формату (раздел 7.4) — только предупреждения. */
-function req_warnings($req): array
-{
-    $req = (array) $req;
-    $digits = fn($k) => preg_replace('/\D/', '', (string) ($req[$k] ?? ''));
-    $out = [];
-    if (($req['inn'] ?? '') !== '' && !in_array(strlen($digits('inn')), [10, 12], true)) {
-        $out[] = 'warn.req_inn';
-    }
-    if (($req['bik'] ?? '') !== '' && strlen($digits('bik')) !== 9) {
-        $out[] = 'warn.req_bik';
-    }
-    if (($req['account'] ?? '') !== '' && strlen($digits('account')) !== 20) {
-        $out[] = 'warn.req_account';
-    }
-    $iban = strtoupper(preg_replace('/\s/', '', (string) ($req['iban'] ?? '')));
-    if (str_starts_with($iban, 'GE') && strlen($iban) !== 22) {
-        $out[] = 'warn.req_iban';
-    }
-    return $out;
-}
-
 /* ---------------------------------------------------------------- запись */
 
 /**
@@ -529,12 +458,12 @@ function site_write(array $site, array $opts = []): array
     if (($site['format'] ?? null) !== 3) {
         throw new InvalidArgumentException('Нужен JSON формата 3');
     }
+    if (payment_data_present($site)) throw new InvalidArgumentException('Payments are unavailable in Admin 1.2');
     $pdo = db();
     $max = (int) $pdo->query('SELECT COALESCE(MAX(id), 0) FROM elements')->fetchColumn();
     $max = max($max, max_tree_id($site['blocks'] ?? []));
-    $mMax = (int) $pdo->query('SELECT COALESCE(MAX(id), 0) FROM pay_methods')->fetchColumn();
     $sMax = (int) $pdo->query('SELECT COALESCE(MAX(id), 0) FROM sections')->fetchColumn();
-    foreach (['element_i18n', 'pay_method_i18n', 'pay_methods', 'elements', 'settings_i18n', 'doc_i18n',
+    foreach (['element_i18n', 'elements', 'settings_i18n', 'doc_i18n',
               'domain_i18n', 'domains', 'section_i18n', 'sections'] as $t) {
         $pdo->exec("DELETE FROM $t");
     }
@@ -574,7 +503,6 @@ function site_write(array $site, array $opts = []): array
     $opId = $op !== null && $op !== '' ? ($ids['op:' . $op] ?? null) : null;
     $plain = [
         'currency'      => in_array($s['currency'] ?? '', ['RUB', 'GEL', 'EUR', 'USD'], true) ? $s['currency'] : 'RUB',
-        'req_format'    => in_array($s['req_format'] ?? '', ['RU', 'GE', 'other'], true) ? $s['req_format'] : 'RU',
         'maps'          => ($s['maps'] ?? '') === 'yandex' ? 'yandex' : 'google',
         'show_prices'   => ($s['show_prices'] ?? true) ? '1' : '0',
         'cookie_notice' => ($s['cookie_notice'] ?? true) ? '1' : '0',
@@ -618,7 +546,7 @@ function site_write(array $site, array $opts = []): array
         }
     }
 
-    $ctx = ['main' => $main, 'photos_dir' => $opts['photos_dir'] ?? null, 'next' => $max, 'next_m' => $mMax,
+    $ctx = ['main' => $main, 'photos_dir' => $opts['photos_dir'] ?? null, 'next' => $max, 'next_m' => 0,
             'next_s' => $sMax, 'ids' => &$ids, 'tabs' => []];
     // Slug плиток общих блоков не совпадает со slug табов: адрес /{slug} должен быть однозначным.
     $used = [];
@@ -659,10 +587,9 @@ function write_tabs(array $tabs, array &$ctx): void
         }
         $op = $tab['operator'] ?? null;
         $opId = $op !== null && $op !== '' ? ($ctx['ids']['op:' . $op] ?? null) : null;
-        db()->prepare('INSERT INTO sections (id, slug, position, hidden, currency, req_format, operator_id, maps, show_prices) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        db()->prepare('INSERT INTO sections (id, slug, position, hidden, currency, operator_id, maps, show_prices) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
             ->execute([$sid, $slug, ++$pos, !empty($tab['hidden']) ? 1 : 0,
                        in_array($tab['currency'] ?? '', ['RUB', 'GEL', 'EUR', 'USD'], true) ? $tab['currency'] : 'RUB',
-                       in_array($tab['req_format'] ?? '', ['RU', 'GE', 'other'], true) ? $tab['req_format'] : 'RU',
                        $opId, ($tab['maps'] ?? '') === 'yandex' ? 'yandex' : 'google', ($tab['show_prices'] ?? true) ? 1 : 0]);
         put_i18n('section_i18n', ['section_id' => $sid], ['title' => $tab['title'] ?? []]);
         $used = [];
@@ -779,21 +706,16 @@ function write_blocks(array $blocks, ?int $parentId, array &$ctx, array &$used, 
                          'tiles_size' => in_array($b['size'] ?? '', ['large', 'compact'], true) ? $b['size'] : ($wine ? 'compact' : 'large'),
                          'frame' => $wine ? '4:5' : (($b['aspect'] ?? '4:5') === '3:2' ? '3:2' : '4:5')];
                 break;
-            case 'pay':
-                $i18n += ['body' => $b['text'] ?? [], 'button_label' => $b['button'] ?? [], 'recipient' => $b['recipient'] ?? []];
-                break;
             case 'service':
-                $row += ['price' => num_or_null($b['price'] ?? null), 'link_url' => nn($b['url'] ?? null)];
-                $i18n += ['body' => $b['text'] ?? [], 'button_label' => $b['button'] ?? [], 'recipient' => $b['recipient'] ?? [],
+                $row += ['price' => num_or_null($b['price'] ?? null)];
+                $i18n += ['body' => $b['text'] ?? [],
                           'price_note' => $b['price_note'] ?? []];
                 break;
         }
+        $row['panel_json']=json_encode(panel_extension($b['extension']??null),JSON_UNESCAPED_UNICODE);
         $id = insert_element($row, $i18n);
         if ($type === 'tiles') {
             write_tiles($b['tiles'] ?? [], $id, $row['frame'], $wine, $ctx, $used, $section);
-        }
-        if ($type === 'pay') {
-            write_methods($b['methods'] ?? [], $id, $ctx);
         }
     }
 }
@@ -820,6 +742,7 @@ function write_tiles(array $tiles, int $blockId, string $frame, bool $wine, arra
             $row += ['as_page' => !empty($t['as_page']) ? 1 : 0, 'lat' => num_or_null($t['lat'] ?? null), 'lng' => num_or_null($t['lng'] ?? null)];
             $i18n += ['place' => $t['place'] ?? [], 'seo_title' => $t['seo_title'] ?? [], 'seo_description' => $t['seo_description'] ?? []];
         }
+        $row['panel_json']=json_encode(panel_extension($t['extension']??null),JSON_UNESCAPED_UNICODE);
         $id = insert_element($row, $i18n);
         if ($isNew && ($t['id'] ?? null) !== null) {
             $ctx['ids']['slug:' . $t['id']] = $slug;
@@ -846,33 +769,6 @@ function insert_element(array $row, array $i18n): int
     $id = (int) ($row['id'] ?? db()->lastInsertId());
     put_i18n('element_i18n', ['element_id' => $id], $i18n);
     return $id;
-}
-
-function write_methods(array $methods, int $elementId, array &$ctx): void
-{
-    $providers = require APP_DIR . '/pay_providers.php';
-    $pos = 0;
-    foreach ($methods as $m) {
-        $provider = isset($providers[$m['provider'] ?? '']) ? $m['provider'] : ($m['kind'] ?? 'custom');
-        $kind = $providers[$provider]['kind'] ?? 'link';
-        $mid = $m['id'] ?? null;
-        if (!is_int($mid) || $mid <= 0) {
-            $new = ++$ctx['next_m'];
-            if ($mid !== null) {
-                $ctx['ids']['m:' . $mid] = $new;
-            }
-            $mid = $new;
-        }
-        $req = $m['req'] ?? null;
-        $image = nn($m['image'] ?? null);
-        if ($image !== null && !preg_match('~^qr/[A-Za-z0-9._-]+$~', $image)) {
-            $image = null; // QR — только файлы из админки или из ZIP (папка qr/)
-        }
-        db()->prepare('INSERT INTO pay_methods (id, element_id, position, kind, provider, enabled, url, qr_path, req_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-            ->execute([$mid, $elementId, ++$pos, $kind, $provider, ($m['on'] ?? true) ? 1 : 0,
-                       nn($m['url'] ?? null), $image, $req ? json_encode($req, JSON_UNESCAPED_UNICODE) : null]);
-        put_i18n('pay_method_i18n', ['method_id' => $mid], ['label' => $m['label'] ?? []]);
-    }
 }
 
 /**

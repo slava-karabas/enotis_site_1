@@ -31,6 +31,7 @@ function route(string $uri): void
         echo view('updating');
         return;
     }
+    if (integration_machine_route($path)) { return; }
     // Мастер установки (раздел 14.1): /install → /admin/install (там живёт сессия админки).
     // Чистая установка без наполнения: главная тоже ведёт в мастер.
     if ($path === '/install' || ($path === '/' && install_open() && site_is_empty())) {

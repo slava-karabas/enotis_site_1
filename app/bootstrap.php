@@ -1,7 +1,10 @@
 <?php
 declare(strict_types=1);
 
-const ENGINE_VERSION = '0.8.1';
+const ENGINE_VERSION = '2.0.0';
+const ENGINE_PRODUCT = 'enotis-feed-free-v2';
+const PANEL_NUMBER = '1';
+const PANEL_PAYMENTS = false;
 const APP_DIR  = __DIR__;
 define('ROOT_DIR', dirname(__DIR__));
 // ENOTIS_DATA — другая папка данных (проверки в CI, вторая копия сайта на одной машине).
@@ -19,9 +22,13 @@ require APP_DIR . '/mail.php';
 require APP_DIR . '/content.php';
 require APP_DIR . '/social.php';
 require APP_DIR . '/seo.php';
+require APP_DIR . '/no_pay.php';
 require APP_DIR . '/site_json.php';
 require APP_DIR . '/import.php';
 require APP_DIR . '/transfer.php';
 require APP_DIR . '/demo.php';
 require APP_DIR . '/admin.php';
+require APP_DIR . '/integrations.php';
+require APP_DIR . '/panel.php';
+require APP_DIR . '/panel_extensions.php';
 require APP_DIR . '/router.php';

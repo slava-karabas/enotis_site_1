@@ -72,5 +72,6 @@ $cookieDoc = doc('cookies');
   <button type="button" class="btn btn--ghost" data-cookie-ok><?= e(t('cookie.ok')) ?></button>
 </div>
 <?php endif ?>
+<script src="/assets/js/panel-blocks.js" defer></script>
 </body>
 </html>

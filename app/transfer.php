@@ -3,16 +3,16 @@ declare(strict_types=1);
 
 /**
  * Выгрузка и загрузка сайта и таба одним ZIP (спецификация 2.1, раздел 13).
- * В ZIP: site.json (формат 3, раздел 12) + photos/ (исходники фото) + qr/ (картинки QR) + brand/ (логотип и значки).
+ * В ZIP: site.json (формат 3, раздел 12) + photos/ (исходники фото) + brand/ (логотип и значки).
  * Секретов в выгрузке нет: site_export() их не знает (логин, пароль, почта администратора, ящик, ключ, счётчик).
  */
 
 const TRANSFER_TMP = DATA_DIR . '/tmp';
 const ZIP_MAX_UNPACKED = 1024 * 1024 * 1024;
 /** Что может лежать в ZIP: имя проверяется целиком, вложенных папок нет. */
-const ZIP_ALLOWED = '~^(site\.json|photos/[A-Za-z0-9._-]+|qr/[A-Za-z0-9._-]+|brand/[A-Za-z0-9._-]+)$~';
+const ZIP_ALLOWED = '~^(site\.json|photos/[A-Za-z0-9._-]+|brand/[A-Za-z0-9._-]+)$~';
 /** Тексты блоков и плиток: в «Только структура» они пустые. */
-const TEXT_KEYS = ['eyebrow', 'title', 'subtitle', 'text', 'caption', 'place', 'grape', 'button', 'recipient', 'price_note',
+const TEXT_KEYS = ['eyebrow', 'title', 'subtitle', 'text', 'caption', 'place', 'grape', 'price_note',
                    'seo_title', 'seo_description'];
 
 /* ---------------------------------------------------------------- выгрузка */
@@ -65,14 +65,6 @@ function export_files(array $blocks, array &$files): array
         if (isset($b['photo'])) {
             $b['photo'] = export_photo_file($b['photo'], $files);
         }
-        foreach ($b['methods'] ?? [] as $i => $m) {
-            $img = (string) ($m['image'] ?? '');
-            if ($img !== '' && is_file(PUBLIC_UPLOADS . '/' . $img)) {
-                $files[$img] = PUBLIC_UPLOADS . '/' . $img;
-            } else {
-                $b['methods'][$i]['image'] = '';
-            }
-        }
         foreach ($b['tabs'] ?? [] as $i => $tab) {
             $b['tabs'][$i]['blocks'] = export_files($tab['blocks'] ?? [], $files);
         }
@@ -120,7 +112,7 @@ function tab_as_site(array $site, int $tabId): ?array
     if (!$tab) {
         return null;
     }
-    foreach (['currency', 'req_format', 'operator', 'maps', 'show_prices'] as $k) {
+    foreach (['currency', 'operator', 'maps', 'show_prices'] as $k) {
         $site['settings'][$k] = $tab[$k];
     }
     $site['operators'] = array_values(array_filter($site['operators'], fn($o) => $o['id'] === $tab['operator']));
@@ -154,13 +146,7 @@ function structure_blocks(array $blocks): array
     foreach ($blocks as &$b) {
         $b = strip_texts($b);
         if (($b['type'] ?? '') === 'service') {
-            $b['url'] = '';
             $b['price'] = null;
-            $b['hidden'] = true; // без ссылки видимая услуга не сохраняется (раздел 10.9)
-        }
-        foreach ($b['methods'] ?? [] as $i => $m) {
-            $b['methods'][$i] = ['kind' => $m['kind'], 'provider' => $m['provider'], 'on' => false, 'url' => '', 'image' => '',
-                                 'label' => (object) [], 'req' => $m['kind'] === 'requisites' ? ['purpose' => (object) []] : null];
         }
         foreach ($b['tabs'] ?? [] as $i => $tab) {
             $b['tabs'][$i]['operator'] = null;
@@ -199,7 +185,7 @@ function strip_texts(array $n): array
 /* ---------------------------------------------------------------- загрузка */
 
 /**
- * Распаковать ZIP во временную папку: только site.json, photos/, qr/, brand/ с плоскими именами.
+ * Распаковать ZIP во временную папку: только site.json, photos/, brand/ с плоскими именами.
  * Возвращает [папка, дерево] или строку-код ошибки.
  */
 function unpack_zip(string $zipFile): array|string
@@ -209,7 +195,7 @@ function unpack_zip(string $zipFile): array|string
         return 'transfer.bad_zip';
     }
     $dir = TRANSFER_TMP . '/import-' . bin2hex(random_bytes(6));
-    foreach (['', '/photos', '/qr', '/brand'] as $sub) {
+    foreach (['', '/photos', '/brand'] as $sub) {
         mkdir($dir . $sub, 0775, true);
     }
     $total = 0;
@@ -237,13 +223,13 @@ function unpack_zip(string $zipFile): array|string
         remove_dir($dir);
         return 'transfer.no_site';
     }
-    return [$dir, $json];
+    return [$dir, no_pay_import($json)];
 }
 
 /** Картинки QR и оформления — в public/uploads, только настоящие картинки. */
 function import_images(string $dir): void
 {
-    foreach (['qr', 'brand'] as $sub) {
+    foreach (['brand'] as $sub) {
         foreach (glob($dir . '/' . $sub . '/*') ?: [] as $f) {
             $isSvg = str_ends_with(strtolower($f), '.svg');
             if (!$isSvg && !@getimagesize($f)) {
@@ -351,7 +337,7 @@ function import_zip_tab(string $zipFile): array
         $tab = [
             'slug'       => (string) ($site['source_tab']['slug'] ?? substr(slugify((string) ($title[$main] ?? reset($title) ?: '')), 0, 40)),
             'title'      => (object) $title,
-            'currency'   => $s['currency'] ?? 'RUB', 'req_format' => $s['req_format'] ?? 'RU',
+            'currency'   => $s['currency'] ?? 'RUB',
             'maps'       => $s['maps'] ?? 'google', 'show_prices' => $s['show_prices'] ?? true,
             'blocks'     => store_tree_photos($site['blocks'] ?? [], $dir . '/photos'),
         ];

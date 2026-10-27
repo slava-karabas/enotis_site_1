@@ -11,10 +11,6 @@
       <span class="svc__note">· <?= e($s['price_note']) ?></span>
 <?php   endif ?>
     </p>
-    <a class="btn" href="<?= e($s['link_url']) ?>" target="_blank" rel="noopener"><?= e($s['button_label']) ?></a>
-<?php   if ($s['recipient']): ?>
-    <p class="fine"><?= e(t('service.by')) ?> <?= e($s['recipient']) ?></p>
-<?php   endif ?>
   </article>
 <?php endforeach ?>
 </section>

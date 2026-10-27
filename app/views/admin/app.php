@@ -5,6 +5,8 @@ $strings = array_merge($strings, lang_strings('admin', $ui));
 $boot = [
     'csrf'  => $csrf,
     'ui'    => $ui,
+    'panel' => PANEL_NUMBER,
+    'payments' => PANEL_PAYMENTS,
     'admin' => ['login' => $admin['login'], 'email' => (string) $admin['email'], 'ui_lang' => $admin['ui_lang']],
     't'     => $strings,
 ];
@@ -17,6 +19,7 @@ $boot = [
 </head>
 <body class="app">
 <header class="top">
+  <span class="top__product">№<?=e(PANEL_NUMBER)?></span>
   <div class="top__site" data-site-name></div>
   <div class="top__status" data-status></div>
   <div class="top__acts">

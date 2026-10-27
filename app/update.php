@@ -15,7 +15,8 @@ declare(strict_types=1);
  * ENOTIS_UPDATE_URL — другой адрес latest.json (только проверки; разрешает http://127.0.0.1).
  */
 
-const UPDATE_URL = 'https://update.enotis.shop/latest.json';
+// No shared feed-1 channel. Configure a separate server explicitly.
+const UPDATE_URL = '';
 const UPDATE_DIR = DATA_DIR . '/update';
 const UPDATE_MAINTENANCE = UPDATE_DIR . '/maintenance';
 const UPDATE_CHECK_HOURS = 12;
@@ -49,12 +50,14 @@ function version_newer(string $a, string $b): bool
  */
 function update_latest(bool $force = false): ?array
 {
+    if (update_url() === '') return null;
     $checked = (int) setting('update_checked_at', '0');
     if ($force || time() - $checked > UPDATE_CHECK_HOURS * 3600) {
         set_setting('update_checked_at', (string) time());
+        set_setting('update_latest', null);
         try {
             $j = json_decode(http_get(update_url(), 10), true);
-            if (is_array($j) && is_string($j['version'] ?? null) && preg_match('~^\d+\.\d+\.\d+$~', $j['version'])) {
+            if (is_array($j) && ($j['product'] ?? null) === ENGINE_PRODUCT && is_string($j['version'] ?? null) && preg_match('~^\d+\.\d+\.\d+$~', $j['version'])) {
                 set_setting('update_latest', json_encode($j, JSON_UNESCAPED_UNICODE));
             }
         } catch (Throwable $e) {
@@ -62,7 +65,7 @@ function update_latest(bool $force = false): ?array
         }
     }
     $j = json_decode((string) setting('update_latest', ''), true);
-    return is_array($j) ? $j : null;
+    return is_array($j) && ($j['product'] ?? null) === ENGINE_PRODUCT ? $j : null;
 }
 
 /** Состояние для админки: версии, что нового, можно ли обновить автоматически, откат. */
@@ -71,6 +74,8 @@ function update_status(bool $force = false): array
     $latest = update_latest($force);
     $prev = update_rollback_info();
     return [
+        'product'  => ENGINE_PRODUCT,
+        'channel_configured' => update_url() !== '',
         'current'  => ENGINE_VERSION,
         'latest'   => $latest['version'] ?? null,
         'newer'    => $latest && version_newer($latest['version'], ENGINE_VERSION),
@@ -138,7 +143,7 @@ final class UpdateError extends RuntimeException
 function update_prepare(): array
 {
     $latest = update_latest(true);
-    if (!$latest || !version_newer($latest['version'], ENGINE_VERSION)) {
+    if (!$latest || ($latest['product'] ?? null) !== ENGINE_PRODUCT || !version_newer($latest['version'], ENGINE_VERSION)) {
         throw new UpdateError('update.none');
     }
     if (version_compare(PHP_VERSION, (string) ($latest['min_php'] ?? '8.1'), '<')) {
@@ -182,6 +187,7 @@ function update_download(): array
     if (!is_file($new . '/app/bootstrap.php') || !is_file($new . '/public/index.php')) {
         throw new UpdateError('update.failed');
     }
+    update_package_check($new, $t['version']);
     $s['step'] = 'download';
     update_state_save($s);
     return ['ok' => true, 'next' => 'replace'];
@@ -194,6 +200,8 @@ function update_replace(): array
         throw new UpdateError('update.failed');
     }
     $new = UPDATE_DIR . '/new';
+    if (($s['target']['product'] ?? null) !== ENGINE_PRODUCT) throw new UpdateError('update.failed');
+    update_package_check($new, $s['target']['version']);
     touch(UPDATE_MAINTENANCE);
     code_replace_from($new);
     $s['step'] = 'replace';
@@ -243,6 +251,7 @@ function update_recover_after_failure(): void
         $tmp = UPDATE_DIR . '/old';
         rrmdir($tmp);
         zip_extract_code($s['backup'] . '/code.zip', $tmp);
+        update_package_check($tmp);
         code_replace_from($tmp);
         rrmdir($tmp);
         if (function_exists('opcache_reset')) {
@@ -293,6 +302,7 @@ function update_restore(string $dir): bool
         $tmp = UPDATE_DIR . '/old';
         rrmdir($tmp);
         zip_extract_code($dir . '/code.zip', $tmp);
+        update_package_check($tmp);
         code_replace_from($tmp);
         rrmdir($tmp);
         db_replace_from($dir . '/site.sqlite');
@@ -466,4 +476,18 @@ function rrmdir(string $dir): void
         $f->isDir() ? @rmdir($f->getPathname()) : @unlink($f->getPathname());
     }
     @rmdir($dir);
+}
+
+function update_package_check(string $dir, ?string $version = null): void
+{
+    $p = json_decode((string) @file_get_contents($dir . '/app/product.json'), true);
+    $src = (string) @file_get_contents($dir . '/app/bootstrap.php');
+    if (($p['product'] ?? null) !== ENGINE_PRODUCT
+        || !preg_match("~const ENGINE_PRODUCT = '([^']+)'~", $src, $product)
+        || $product[1] !== ENGINE_PRODUCT
+        || !preg_match("~const ENGINE_VERSION = '(\d+\.\d+\.\d+)'~", $src, $v)
+        || ($p['version'] ?? null) !== $v[1]
+        || ($version !== null && $version !== $v[1])) {
+        throw new UpdateError('update.failed');
+    }
 }

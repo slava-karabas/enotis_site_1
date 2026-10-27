@@ -63,6 +63,7 @@ function admin_route(string $path): void
         return;
     }
 
+    if ($path === '/admin/integrations') { panel_integrations(); return; }
     if ($path === '/admin' || $path === '/admin/') {
         echo admin_page('admin/app', ['admin' => $admin]);
         return;
@@ -291,9 +292,6 @@ function admin_api(string $name, string $method, array $admin): void
             $in = admin_input();
             admin_json(photo_process((int) ($in['id'] ?? 0), (string) ($in['mode'] ?? ''), (string) ($in['aspect'] ?? ''), !empty($in['again'])));
             return;
-        case 'POST qr':
-            admin_qr_upload();
-            return;
         case 'POST profile':
             admin_profile($admin, admin_input());
             return;
@@ -313,16 +311,7 @@ function admin_api(string $name, string $method, array $admin): void
 /** Справочники для форм: способы оплаты, соцсети, пределы длины. */
 function admin_meta(): array
 {
-    $providers = require APP_DIR . '/pay_providers.php';
-    $labels = [];
-    foreach (LANGS as $l) {
-        foreach ($providers as $code => $_) {
-            $labels[$code][$l] = lang_strings('', $l)['pay.provider.' . $code] ?? '';
-        }
-    }
     return [
-        'providers' => $providers,
-        'provider_labels' => $labels,
         'social' => SOCIAL_NAMES,
         'social_icons' => array_map(fn($n) => social_icon($n), array_combine(array_keys(SOCIAL_NAMES), array_keys(SOCIAL_NAMES))),
         'max' => FIELD_MAX,
@@ -415,6 +404,10 @@ function admin_preview_store(array $in): void
     $site = $in['site'] ?? null;
     if (!is_array($site)) {
         admin_json(['error' => 'bad_request'], 400);
+        return;
+    }
+    if (payment_data_present($site)) {
+        admin_json(['error' => 'payments_unavailable'], 422);
         return;
     }
     if (!is_dir(PREVIEW_DIR)) {
@@ -567,27 +560,7 @@ function admin_original(int $id, string $src = ''): void
 }
 
 /** QR оплаты: картинка как есть, без обрезки (раздел 10.6). SVG — позже, с очисткой от скриптов. */
-function admin_qr_upload(): void
-{
-    $f = $_FILES['file'] ?? null;
-    if (!$f || $f['error'] !== UPLOAD_ERR_OK || $f['size'] > 5 * 1024 * 1024) {
-        admin_json(['error' => 'photo.upload_failed'], 400);
-        return;
-    }
-    $info = @getimagesize($f['tmp_name']);
-    $ext = [IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_WEBP => 'webp'][$info[2] ?? 0] ?? null;
-    if (!$ext) {
-        admin_json(['error' => 'photo.bad_type'], 400);
-        return;
-    }
-    $dir = PUBLIC_UPLOADS . '/qr';
-    if (!is_dir($dir)) {
-        mkdir($dir, 0775, true);
-    }
-    $name = substr(sha1_file($f['tmp_name']), 0, 12) . '.' . $ext;
-    move_uploaded_file($f['tmp_name'], $dir . '/' . $name);
-    admin_json(['image' => 'qr/' . $name]);
-}
+
 
 /* ---------------------------------------------------------------- профиль */
 
@@ -648,7 +621,6 @@ function admin_private(): array
         'smtp_pass_set'    => (string) setting('smtp_pass', '') !== '',
         'mail_test_ok'     => (string) setting('mail_test_ok', ''),
         'counter_code'     => (string) setting('counter_code', ''),
-        'payment_checked'  => setting('launch_payment_checked') === '1',
         'photo_service'    => photo_service_name(),
         'photo_api_key'    => null,
         'photo_key_masked' => photo_key_masked(),
@@ -659,6 +631,7 @@ function admin_private(): array
 function private_errors(array $p): array
 {
     $err = [];
+    if (payment_data_present($p)) $err[] = ['id' => 'site', 'code' => 'err.bad_type'];
     $from = trim((string) ($p['mail_from'] ?? ''));
     if ($from !== '' && !filter_var($from, FILTER_VALIDATE_EMAIL)) {
         $err[] = ['id' => 'mail', 'field' => 'mail_from', 'code' => 'err.email'];
@@ -688,7 +661,6 @@ function private_write(array $p): void
         'smtp_secure' => ($p['smtp_secure'] ?? '') === 'ssl' ? 'ssl' : 'tls',
         'smtp_user'   => trim((string) ($p['smtp_user'] ?? '')),
         'counter_code' => (string) ($p['counter_code'] ?? ''),
-        'launch_payment_checked' => !empty($p['payment_checked']) ? '1' : '0',
         'photo_service' => ($p['photo_service'] ?? '') === 'photoroom' ? 'photoroom' : 'claid',
     ];
     // Ключ фотосервиса: как пароль ящика — null не меняли, пустая строка стереть.

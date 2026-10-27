@@ -19,11 +19,16 @@ curl -fsS -b "$J" "$B/admin/api/site" > /tmp/admin-site.json
 php -r '$j=json_decode(file_get_contents("/tmp/admin-site.json"),true); file_put_contents("/tmp/admin-save.json", json_encode(["site"=>$j["site"]], JSON_UNESCAPED_UNICODE));'
 CODE=$(curl -s -o /tmp/admin-save-res.json -w '%{http_code}' -b "$J" -H "X-CSRF: $CS" -H 'Content-Type: application/json' --data @/tmp/admin-save.json "$B/admin/api/save")
 echo "save: $CODE"
-# В тестовой ленте есть видимая услуга без ссылки — сервер обязан отказать и назвать причину.
-test "$CODE" = 422
-grep -q 'err.service_url' /tmp/admin-save-res.json
-php -r '$j=json_decode(file_get_contents("/tmp/admin-save.json"),true); function hide(&$bl){foreach($bl as &$b){ if(($b["type"]??"")==="service" && trim($b["url"]??"")==="") $b["hidden"]=true; foreach($b["tiles"]??[] as &$t) { if (isset($t["blocks"])) hide($t["blocks"]); } } } hide($j["site"]["blocks"]); file_put_contents("/tmp/admin-save.json", json_encode($j, JSON_UNESCAPED_UNICODE));'
-test "$(curl -s -o /tmp/admin-save-res.json -w '%{http_code}' -b "$J" -H "X-CSRF: $CS" -H 'Content-Type: application/json' --data @/tmp/admin-save.json "$B/admin/api/save")" = 200
+# Платная версия требует ссылку видимой услуги; бесплатная сохраняет её описание.
+PAY=$(php -r 'require "app/bootstrap.php";echo PANEL_PAYMENTS?"1":"0";')
+if [ "$PAY" = 1 ]; then
+  test "$CODE" = 422
+  grep -q 'err.service_url' /tmp/admin-save-res.json
+  php -r '$j=json_decode(file_get_contents("/tmp/admin-save.json"),true); function hide(&$v){if(!is_array($v))return;if(($v["type"]??"")==="service"&&trim($v["url"]??"")==="")$v["hidden"]=true;foreach($v as &$x)if(is_array($x))hide($x);}hide($j);file_put_contents("/tmp/admin-save.json",json_encode($j,JSON_UNESCAPED_UNICODE));'
+  test "$(curl -s -o /tmp/admin-save-res.json -w '%{http_code}' -b "$J" -H "X-CSRF: $CS" -H 'Content-Type: application/json' --data @/tmp/admin-save.json "$B/admin/api/save")" = 200
+else
+  test "$CODE" = 200
+fi
 grep -q '"ok":true' /tmp/admin-save-res.json
 AFTER=$(curl -fsS "$B/" | sed 's#/uploads/photos/[0-9]*-##g' | md5sum)
 test "$BEFORE" = "$AFTER"

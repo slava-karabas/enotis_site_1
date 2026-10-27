@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 function import_site(array $site, string $photosDir): void
 {
+    $site = no_pay_import($site);
     $pdo = db();
     $pdo->beginTransaction();
     try {

@@ -8,6 +8,8 @@ $n = count($blocks);
 while ($i < $n) {
     $b = $blocks[$i];
     $prev = feed($b['section_id']);
+    $extension=panel_block_extension($b);
+    if(PANEL_NUMBER==='2'&&in_array($extension['kind']??'', ['products','gift'],true)){panel_shop_block($b,$extension);$i++;feed($prev);continue;}
     if ($b['type'] === 'service') {
         $group = [];
         while ($i < $n && $blocks[$i]['type'] === 'service') {
