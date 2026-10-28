@@ -230,9 +230,10 @@
     }).addTo(map);
     map.attributionControl.setPrefix(false);
   }
-  function marker(lat, lng) {
-    return L.marker([lat, lng], { icon: L.divIcon({ className: '', html: '<span class="marker"></span>', iconSize: [16, 16], iconAnchor: [8, 8] }) });
+  function marker(lat, lng, title) {
+    return L.marker([lat, lng], {title:title || '', alt:title || '', icon:L.divIcon({className:'', html:'<span class="marker"><svg viewBox="0 0 24 32" aria-hidden="true"><path d="M12 31C10 28 1 18 1 12a11 11 0 0 1 22 0c0 6-9 16-11 19Z" fill="currentColor" stroke="#fff" stroke-width="1.5"/><circle cx="12" cy="12" r="3" fill="#fff"/></svg></span>', iconSize:[24,32], iconAnchor:[12,32], popupAnchor:[0,-30]})});
   }
+
   // Колесо мыши не приближает, пока по карте не кликнули.
   function wheelAfterClick(map) {
     map.scrollWheelZoom.disable();
@@ -243,30 +244,97 @@
   }
 
   function initMap(box) {
+    if (box.dataset.mapReady) return;
     var points = JSON.parse(box.getAttribute('data-points') || '[]');
     if (!points.length) return;
+    box.dataset.mapReady = '1';
+    var fallback = box.innerHTML, map = null;
     var cluster = points.length > 30;
     leaflet(cluster).then(function () {
+      var section = box.closest('.map');
+      var expand = section && $('[data-map-expand]', section);
       box.innerHTML = '';
       box.classList.add('is-map');
-      var map = L.map(box, { zoomControl: true });
+      map = L.map(box, { zoomControl: true });
       tiles(map, box.getAttribute('data-attr'));
       wheelAfterClick(map);
       var group = cluster ? L.markerClusterGroup({ showCoverageOnHover: false }) : L.featureGroup();
+      var dialog = null, restoreFocus = true, originalParent = null, originalNext = null, originalView = null;
       points.forEach(function (p) {
-        var m = marker(p.lat, p.lng);
-        m.bindTooltip(escapeHtml(p.title), { direction: 'top', offset: [0, -8] });
+        var m = marker(p.lat, p.lng, p.title);
+        m.bindTooltip(escapeHtml(p.title), { direction: 'top', offset: [0, -32] });
+        var popup = document.createElement('div');
+        var title = document.createElement('strong');
+        title.className = 'map__popup-title'; title.textContent = p.title;
+        popup.appendChild(title);
+        var actions = document.createElement('div'); actions.className = 'map__popup-actions';
         if (p.url) {
-          m.on('click', function () {
-            if (!(p.popup && openPopup(p.popup, true))) location.href = p.url;
+          var more = document.createElement('a'); more.href = p.url;
+          more.textContent = box.getAttribute('data-more') || p.title;
+          more.addEventListener('click', function (event) {
+            if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+            if (dialog && dialog.open) { restoreFocus = false; dialog.close(); }
+            if (p.popup && openPopup(p.popup, true)) event.preventDefault();
           });
+          actions.appendChild(more);
         }
-        group.addLayer(m);
+        if (p.route) {
+          var route = document.createElement('a'); route.href = p.route;
+          route.textContent = box.getAttribute('data-route-label');
+          route.target = '_blank'; route.rel = 'noopener';
+          actions.appendChild(route);
+        }
+        popup.appendChild(actions); m.bindPopup(popup); group.addLayer(m);
       });
       group.addTo(map);
-      if (points.length === 1) map.setView([points[0].lat, points[0].lng], 13);
-      else map.fitBounds(group.getBounds(), { padding: [30, 30], maxZoom: 13 });
-    });
+      function fit() {
+        map.invalidateSize({ pan:false });
+        if (points.length === 1) map.setView([points[0].lat, points[0].lng], 13, { animate:false });
+        else map.fitBounds(group.getBounds(), { padding:[36,36], maxZoom:13, animate:false });
+      }
+      fit();
+      if ('ResizeObserver' in window) {
+        var lastWidth = box.clientWidth, lastHeight = box.clientHeight;
+        var observer = new ResizeObserver(function () {
+          if (!box.isConnected) { observer.disconnect(); return; }
+          if (lastWidth === box.clientWidth && lastHeight === box.clientHeight) return;
+          lastWidth = box.clientWidth; lastHeight = box.clientHeight;
+          if (dialog && dialog.open) map.invalidateSize({pan:false}); else fit();
+        });
+        observer.observe(box);
+      } else window.addEventListener('resize', function () { if (box.isConnected) map.invalidateSize({ pan:false }); });
+      if (expand && typeof HTMLDialogElement !== 'undefined' && typeof HTMLDialogElement.prototype.showModal === 'function') {
+        expand.hidden = false;
+        expand.addEventListener('click', function () {
+          if (!dialog) {
+            dialog = document.createElement('dialog'); dialog.className = 'map__dialog';
+            var head = document.createElement('div'); head.className = 'map__dialog-head';
+            var heading = document.createElement('h2'); heading.id = box.id + '-dialog-title'; heading.textContent = box.getAttribute('data-title');
+            dialog.setAttribute('aria-labelledby', heading.id);
+            var close = document.createElement('button'); close.type = 'button'; close.className = 'map__dialog-close'; close.textContent = box.getAttribute('data-close');
+            head.appendChild(heading); head.appendChild(close); dialog.appendChild(head);
+            var body = document.createElement('div'); body.className = 'map__dialog-body'; dialog.appendChild(body);
+            close.addEventListener('click', function () { dialog.close(); });
+            dialog.addEventListener('click', function (event) { if (event.target === dialog) dialog.close(); });
+            dialog.addEventListener('close', function () {
+              var closed = dialog;
+              originalParent.insertBefore(box, originalNext && originalNext.parentNode === originalParent ? originalNext : null);
+              document.documentElement.style.overflow = closed._previousOverflow;
+              closed.remove(); dialog = null;
+              expand.setAttribute('aria-expanded', 'false');
+              requestAnimationFrame(function () { map.invalidateSize({pan:false}); map.setView(originalView.center, originalView.zoom, {animate:false}); if (restoreFocus && expand.isConnected) expand.focus(); });
+            });
+            document.body.appendChild(dialog);
+          }
+          originalParent = box.parentNode; originalNext = box.nextSibling;
+          originalView = { center:map.getCenter(), zoom:map.getZoom() }; restoreFocus = true;
+          dialog._previousOverflow = document.documentElement.style.overflow;
+          dialog.querySelector('.map__dialog-body').appendChild(box);
+          dialog.showModal(); document.documentElement.style.overflow = 'hidden';
+          expand.setAttribute('aria-expanded','true'); requestAnimationFrame(fit);
+        });
+      }
+    }).catch(function () { if (map) map.remove(); box.innerHTML = fallback; box.classList.remove('is-map'); box.dataset.mapReady = ''; });
   }
 
   function initMinimaps(root) {
