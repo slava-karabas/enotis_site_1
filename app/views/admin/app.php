@@ -14,7 +14,7 @@ $boot = [
 <?= view('admin/head', ['ui' => $ui, 'title' => ta('app.title', $ui)]) ?>
   <link rel="stylesheet" href="/assets/vendor/cropper/cropper.min.css?v=<?= ENGINE_VERSION ?>">
   <script src="/assets/vendor/cropper/cropper.min.js?v=<?= ENGINE_VERSION ?>" defer></script>
-  <script src="/assets/js/admin.js?v=<?= ENGINE_VERSION ?>" defer></script>
+  <script src="/assets/js/admin.js?v=<?= e(asset_version('/assets/js/admin.js')) ?>" defer></script>
   <script type="application/json" id="boot"><?= json_encode($boot, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
 </head>
 <body class="app">

@@ -11,7 +11,7 @@ $badge = ($b['section_id'] !== null && $b['parent_id'] === null && !single_tab()
 $sizes = $size === 'large' ? '(min-width: 1440px) 446px, (min-width: 1024px) calc((100vw - 104px) / 3), (min-width: 600px) calc((100vw - 80px) / 2), calc(100vw - 32px)'
                            : '(min-width: 1440px) 328px, (min-width: 1024px) calc((100vw - 128px) / 4), (min-width: 600px) calc((100vw - 104px) / 3), calc((100vw - 56px) / 2)';
 ?>
-<section class="wrap blk tiles tiles--<?= e($size) ?><?= $wine ? ' tiles--wine' : '' ?>"<?= eid($b['id']) ?> data-tile-filters>
+<section class="wrap blk tiles tiles--<?= e($size) ?><?= $wine ? ' tiles--wine' : '' ?>"<?= eid($b['id']) ?><?php if (!empty($b['_page_anchor'])): ?> id="block-<?= (int)$b['id'] ?>"<?php endif ?> data-tile-filters>
 <?php if ($b['title']): ?>
   <h2 class="tiles__h"><?= e($b['title']) ?></h2>
 <?php endif ?>

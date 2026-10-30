@@ -329,7 +329,7 @@ function validate_blocks(array $blocks, int $level, array $ctx, bool $home = fal
             }
             $once[$type] = true;
         }
-        try { panel_extension($b['extension']??null); } catch(InvalidArgumentException $e) { $ctx['errors'][]=['id'=>$id,'code'=>'err.bad_type']; }
+        try { panel_extension($b['extension']??null,$b['type']); } catch(InvalidArgumentException $e) { $ctx['errors'][]=['id'=>$id,'code'=>'err.bad_type']; }
         $hidden = !empty($b['hidden']);
         check_lengths($type, $id, $b, $ctx);
         if ($type === 'service') {
@@ -341,7 +341,7 @@ function validate_blocks(array $blocks, int $level, array $ctx, bool $home = fal
             $wine = ($b['kind'] ?? 'normal') === 'wine';
             foreach ($b['tiles'] ?? [] as $t) {
                 $tid = $t['id'] ?? null;
-                try { panel_extension($t['extension']??null); } catch(InvalidArgumentException $e) { $ctx['errors'][]=['id'=>$tid,'code'=>'err.bad_type']; }
+                try { panel_extension($t['extension']??null,'tile'); } catch(InvalidArgumentException $e) { $ctx['errors'][]=['id'=>$tid,'code'=>'err.bad_type']; }
                 check_lengths($wine ? 'wine' : 'tile', $tid, $t, $ctx);
                 if (!$wine) {
                     check_coords($t, $ctx);
@@ -712,7 +712,7 @@ function write_blocks(array $blocks, ?int $parentId, array &$ctx, array &$used, 
                           'price_note' => $b['price_note'] ?? []];
                 break;
         }
-        $row['panel_json']=json_encode(panel_extension($b['extension']??null),JSON_UNESCAPED_UNICODE);
+        $row['panel_json']=json_encode(panel_extension($b['extension']??null,$b['type']),JSON_UNESCAPED_UNICODE);
         $id = insert_element($row, $i18n);
         if ($type === 'tiles') {
             write_tiles($b['tiles'] ?? [], $id, $row['frame'], $wine, $ctx, $used, $section);
@@ -742,7 +742,7 @@ function write_tiles(array $tiles, int $blockId, string $frame, bool $wine, arra
             $row += ['as_page' => !empty($t['as_page']) ? 1 : 0, 'lat' => num_or_null($t['lat'] ?? null), 'lng' => num_or_null($t['lng'] ?? null)];
             $i18n += ['place' => $t['place'] ?? [], 'seo_title' => $t['seo_title'] ?? [], 'seo_description' => $t['seo_description'] ?? []];
         }
-        $row['panel_json']=json_encode(panel_extension($t['extension']??null),JSON_UNESCAPED_UNICODE);
+        $row['panel_json']=json_encode(panel_extension($t['extension']??null,'tile'),JSON_UNESCAPED_UNICODE);
         $id = insert_element($row, $i18n);
         if ($isNew && ($t['id'] ?? null) !== null) {
             $ctx['ids']['slug:' . $t['id']] = $slug;

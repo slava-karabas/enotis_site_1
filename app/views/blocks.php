@@ -9,6 +9,7 @@ while ($i < $n) {
     $b = $blocks[$i];
     $prev = feed($b['section_id']);
     $extension=panel_block_extension($b);
+    if(($extension['kind']??'')==='contacts'){echo view('blocks/contacts',['b'=>$b,'config'=>$extension]);$i++;feed($prev);continue;}
     if(PANEL_NUMBER==='2'&&in_array($extension['kind']??'', ['products','gift'],true)){panel_shop_block($b,$extension);$i++;feed($prev);continue;}
     if ($b['type'] === 'service') {
         $group = [];

@@ -1,9 +1,11 @@
 <?php
 declare(strict_types=1);
-function panel_extension(mixed $v): array {
+require_once __DIR__.'/contacts.php';
+function panel_extension(mixed $v, string $type='text'): array {
     if($v===null||$v===[])return [];
     if(!is_array($v)||strlen(json_encode($v))>32000)throw new InvalidArgumentException('Некорректная настройка блока');
     $kind=$v['kind']??'';
+    if($kind==='contacts'){if($type!=='text')throw new InvalidArgumentException('Контакты должны быть отдельным блоком');return panel_contacts_config($v);}
     if(!in_array($kind,['products','gift','filters','values'],true)||PANEL_NUMBER!=='2'&&in_array($kind,['products','gift'],true))throw new InvalidArgumentException('Этот блок недоступен');
     $out=['kind'=>$kind];
     foreach(['ids','labels','values'] as $key)if(isset($v[$key])){

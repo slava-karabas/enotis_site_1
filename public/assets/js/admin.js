@@ -202,6 +202,7 @@
 
   var TYPE_LABEL = function (node) {
     var k = kindOf(node);
+    if(node.extension?.kind==='contacts')return t('contacts.title');
     if(node.extension?.kind==='products')return 'Подборка товаров';
     if(node.extension?.kind==='gift')return 'Подарочный конструктор';
     return t('type.' + k);
@@ -237,6 +238,25 @@
     var input=h('input',{type:'text',value:value});input.value=value;
     input.addEventListener('input',function(){change(input.value);changed();});return field(label,input);
   }
+  function contactsForm(f,b) {
+    f.appendChild(textField(b,'title',t('contacts.title'),60));
+    f.appendChild(h('p',{class:'hint',text:t('contacts.hint')}));
+    var items=b.extension.items;
+    items.forEach(function(item,index){
+      var card=h('div',{class:'card'});
+      card.appendChild(panelInput(t('contacts.value'),item.value,function(v){item.value=v;}));
+      card.appendChild(panelInput(t('contacts.label'),item.label||'',function(v){item.label=v;}));
+      var actions=h('div',{class:'two'});
+      function move(delta){var to=index+delta;if(to<0||to>=items.length)return;items.splice(to,0,items.splice(index,1)[0]);changed();renderForm();}
+      actions.appendChild(h('button',{type:'button',class:'btn btn--ghost',text:'↑',disabled:index===0,'aria-label':t('contacts.up'),onclick:function(){move(-1);}}));
+      actions.appendChild(h('button',{type:'button',class:'btn btn--ghost',text:'↓',disabled:index===items.length-1,'aria-label':t('contacts.down'),onclick:function(){move(1);}}));
+      card.appendChild(actions);
+      card.appendChild(h('button',{type:'button',class:'btn btn--danger',text:t('contacts.remove'),onclick:function(){items.splice(index,1);changed();renderForm();}}));
+      f.appendChild(card);
+    });
+    f.appendChild(h('button',{type:'button',class:'btn',text:t('contacts.add'),disabled:items.length>=50,onclick:function(){items.push({value:'',label:''});changed();renderForm();}}));
+  }
+
   function panelExtensionForm(f,b) {
     var ext=b.extension;
     f.appendChild(textField(b,'title','Заголовок',60));
@@ -427,6 +447,7 @@
     if(PANEL_BOOT.panel==='2') [['products','Подборка товаров'],['gift','Подарочный конструктор']].forEach(function(entry){
       menu.appendChild(h('button',{type:'button',role:'menuitem',text:entry[1],onclick:function(){closeMenus();var b=emptyBlock('text');b.title=obj(entry[1]);b.extension={kind:entry[0],ids:[],limit:12,filter:false,box_minor:0,card_minor:0};list.push(b);keepTabsLast(list);changed();select(String(b.id));}}));
     });
+    menu.appendChild(h('button',{type:'button',role:'menuitem',text:t('contacts.title'),onclick:function(){closeMenus();var b=emptyBlock('text');b.title=obj(t('contacts.title'));b.extension={kind:'contacts',items:[]};list.push(b);keepTabsLast(list);changed();select(String(b.id));}}));
     anchor.after(menu);
     setTimeout(function () { document.addEventListener('click', closeMenus, { once: true }); });
   }
@@ -744,7 +765,7 @@
     var M = S.meta.max[k] || {};
     var f = h('div', { class: 'fbody' });
     root.appendChild(f);
-    if(['products','gift'].indexOf(node.extension?.kind)>=0)panelExtensionForm(f,node); else FORMS[k](f,node,M);
+    if(node.extension?.kind==='contacts')contactsForm(f,node); else if(['products','gift'].indexOf(node.extension?.kind)>=0)panelExtensionForm(f,node); else FORMS[k](f,node,M);
     panelTileFilters(f,node,k);
     var del = k === 'tab' ? t('tab.delete_all', { n: countInside(node) }) : t('tree.delete');
     root.appendChild(h('div', { class: 'ffoot' }, [h('button', { type: 'button', class: 'btn btn--danger', text: del, onclick: function () { removeNode(node); } })]));
@@ -794,6 +815,7 @@
       f.appendChild(textField(tl, 'subtitle', t('field.tile_subtitle'), M.subtitle, { hint: t('hint.tile_subtitle') }));
       var o = opens(tl);
       f.appendChild(textField(tl, 'text', t('field.text'), M.text, { area: true, rows: 7, hint: o === 'page' || o === 'static' ? t('hint.text_page') : t('hint.text_popup') }));
+      f.appendChild(h('p',{class:'hint',text:t('contacts.description')}));
       f.appendChild(section(t('sec.place')));
       f.appendChild(textField(tl, 'place', t('field.place'), M.place));
       var two = h('div', { class: 'two' }, [

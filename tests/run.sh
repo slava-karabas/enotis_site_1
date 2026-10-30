@@ -4,6 +4,7 @@ cd "$(dirname "$0")/.."
 find app bin public tests -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
 php bin/check-lang.php
 php tests/map-template.php
+php tests/contacts.php
 php tests/integrations.php
 for kind in sample aggregator settings photo; do
   export ENOTIS_DATA=$(mktemp -d)
@@ -16,7 +17,7 @@ for kind in sample aggregator settings photo; do
   trap 'kill "$pid" 2>/dev/null || true' EXIT
   sleep 1
   case "$kind" in
-    sample) tests/admin-smoke.sh http://127.0.0.1:8081 ;;
+    sample) tests/admin-smoke.sh http://127.0.0.1:8081; python3 tests/contacts-http.py http://127.0.0.1:8081 ;;
     aggregator) tests/tabs-smoke.sh http://127.0.0.1:8081 ;;
     settings) tests/settings-smoke.sh http://127.0.0.1:8081 "$ENOTIS_MAIL_FILE" ;;
     photo) tests/photo-smoke.sh http://127.0.0.1:8081 ;;

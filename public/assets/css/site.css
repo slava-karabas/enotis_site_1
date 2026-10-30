@@ -279,3 +279,44 @@ body.is-locked { overflow: hidden; }
 .map__popup-title { display:block; margin-bottom:8px; overflow-wrap:anywhere; }
 .map__popup-actions { display:flex; gap:12px; flex-wrap:wrap; }
 .map__popup-actions a { padding:3px 0; }
+
+/* Shared place-page standard, 30.10.2026. No admin or client data overrides. */
+.tpage__top { display:grid; grid-template-columns:minmax(0,1fr); gap:24px; }
+.tpage__photo { float:none; width:auto; margin:0; align-self:start; }
+.tpage__text { display:block; min-width:0; font-size:17px; line-height:1.5; }
+.tpage__text h1 { font-size:32px; }
+.tpage__text .tpage__subheading { font-size:22px; margin:20px 0 10px; }
+.tpage .blk > h2, .tpage .tiles__h, .tpage .map__h, .contacts h2 { font-size:26px; }
+.tpage__place { margin-top:var(--blk-gap); }
+.tpage .place__address { font-size:17px; margin:0 0 18px; }
+.contacts__surface { padding:24px; border:1px solid var(--c-line); border-radius:var(--radius); background:var(--c-paper); }
+.contacts h2 { margin:0 0 18px; }
+.contacts__list { list-style:none; padding:0; margin:0; display:grid; gap:14px 36px; }
+.contacts__list li { display:grid; gap:3px; min-width:0; font-size:17px; line-height:1.5; }
+.contacts__label { font-size:15px; color:var(--c-mute); }
+.contacts__list a { overflow-wrap:anywhere; text-underline-offset:3px; }
+@media(min-width:600px) { .contacts__list { grid-template-columns:repeat(2,minmax(0,1fr)); } .tpage .blk > h2, .tpage .tiles__h, .tpage .map__h, .contacts h2 { font-size:32px; } }
+@media(min-width:1024px) { .tpage__top { grid-template-columns:repeat(2,minmax(0,1fr)); gap:36px; } .tpage__text h1 { font-size:46px; } }
+
+.tpage .text { font-size:17px; line-height:1.5; }
+.tpage .eyebrow, .tpage .map__hint, .tpage .btn, .tpage .map__expand { font-size:15px; }
+.tpage .title--s { font-size:22px; }
+
+.tpage__top.tpage__top--no-photo { grid-template-columns:minmax(0,1fr); }
+
+.tpage__place { margin-top:0; }
+.map__address { font-size:17px; margin:0 0 18px; }
+
+@media(min-width:600px) { .tpage__text h1 { font-size:46px; } }
+
+/* Approved composition: centred page title above photo/description, with visible-section links. */
+.tpage__heading { padding-top:26px; text-align:center; }
+.tpage__heading h1 { font-size:46px; margin:0 0 10px; }
+.tpage__location { font-size:15px; color:var(--c-mute); margin:0; }
+.tpage__nav { display:flex; justify-content:center; flex-wrap:wrap; gap:10px 24px; margin-top:22px; }
+.tpage__nav a { font-size:15px; text-decoration:none; padding:3px 0; }
+.tpage__top { padding-top:28px; align-items:center; }
+.tpage__photo { align-self:center; }
+.tpage__text p:last-child { margin-bottom:0; }
+.tpage [id] { scroll-margin-top:85px; }
+@media(max-width:599px) { .tpage__heading { padding-top:22px; } .tpage__heading h1 { font-size:32px; } .tpage__nav { gap:10px 18px; } .tpage__top { padding-top:24px; } }
