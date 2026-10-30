@@ -315,8 +315,10 @@ body.is-locked { overflow: hidden; }
 .tpage__location { font-size:15px; color:var(--c-mute); margin:0; }
 .tpage__nav { display:flex; justify-content:center; flex-wrap:wrap; gap:10px 24px; margin-top:22px; }
 .tpage__nav a { font-size:15px; text-decoration:none; padding:3px 0; }
-.tpage__top { padding-top:28px; align-items:center; }
-.tpage__photo { align-self:center; }
+.tpage__top { padding-top:28px; align-items:start; }
+.tpage__photo { align-self:start; }
 .tpage__text p:last-child { margin-bottom:0; }
 .tpage [id] { scroll-margin-top:85px; }
 @media(max-width:599px) { .tpage__heading { padding-top:22px; } .tpage__heading h1 { font-size:32px; } .tpage__nav { gap:10px 18px; } .tpage__top { padding-top:24px; } }
+
+.contacts__empty { font-size:17px; line-height:1.5; margin:0; }

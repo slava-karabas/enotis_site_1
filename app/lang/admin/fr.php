@@ -543,7 +543,7 @@ Si ce n’était pas vous, supprimez simplement cet e-mail : votre mot de passe 
     'install.title_required' => 'Saisissez le nom du site (40 caractères max.).',
 
     "contacts.title" => "Contacts",
-    "contacts.hint" => "Téléphone, courriel ou lien HTTP(S). La légende facultative peut préciser un partenaire ou un diocèse. Les blocs vides sont masqués.",
+    "contacts.hint" => "Téléphone, courriel ou lien HTTP(S). Une légende peut préciser un partenaire ou un diocèse. Sans coordonnées, le site affiche un message. Désactivez « Afficher sur le site » pour masquer la section.",
     "contacts.value" => "Contact / lien",
     "contacts.label" => "Légende",
     "contacts.add" => "+ Ajouter un contact",

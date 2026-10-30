@@ -543,7 +543,7 @@ If it was not you, just delete this email; your password stays the same.',
     'install.title_required' => 'Enter the site name (up to 40 characters).',
 
     "contacts.title" => "Contacts",
-    "contacts.hint" => "Phone, email or HTTP(S) link. An optional label can identify a partner or diocese. Empty blocks are hidden.",
+    "contacts.hint" => "Phone, email or HTTP(S) link. An optional label can identify a partner or diocese. If no contacts are entered, the site displays a message. Turn off “Show on site” to hide the section.",
     "contacts.value" => "Contact / link",
     "contacts.label" => "Label",
     "contacts.add" => "+ Add contact",

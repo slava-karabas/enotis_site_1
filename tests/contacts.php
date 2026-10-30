@@ -28,8 +28,14 @@ $back=site_export();check($back['blocks'][0]['extension']===$cfg,'ZIP import pre
 $block=$back['blocks'][0];$block['title']='Контакты';$config=$cfg;
 $html=view('blocks/contacts',['b'=>$block,'config'=>$config]);check(str_contains($html,'tel:+995555123456')&&str_contains($html,'mailto:info@example.com'),'real contact renderer');
 $html=view('blocks/contacts',['b'=>$block,'config'=>['items'=>[['value'=>'https://example.com','label'=>'<script>']]]]);check(!str_contains($html,'<script>')&&str_contains($html,'&lt;script&gt;'),'safe label');
-check(view('blocks/contacts',['b'=>$block,'config'=>['items'=>[]]])==='','empty hidden');
-$n=['hidden'=>0,'type'=>'text','panel_json'=>json_encode(['kind'=>'contacts','items'=>[]]),'title'=>'Контакты'];check(!is_visible($n),'empty block must not expose navigation');
+foreach (['ru','en','fr','ka'] as $lang) {
+ current_lang($lang);
+ $empty=view('blocks/contacts',['b'=>$block,'config'=>['items'=>[]]]);
+ check(str_contains($empty,e(t('contacts.empty'))) && str_contains($empty,'contacts__surface') && !str_contains($empty,'contacts__list'),'translated empty state');
+}
+current_lang('ru');
+check(view('blocks/contacts',['b'=>array_replace($block,['hidden'=>true]),'config'=>['items'=>[]]])==='','explicit hidden empty state');
+$n=['hidden'=>0,'type'=>'text','panel_json'=>json_encode(['kind'=>'contacts','items'=>[]]),'title'=>'Контакты'];check(is_visible($n),'empty contact block remains visible');$n['hidden']=1;check(!is_visible($n),'explicit hiding remains authoritative');
 ob_start();panel_description("Описание\n## Святыни\n<script>not markup</script>");$html=ob_get_clean();check(str_contains($html,'<h2 class="tpage__subheading">Святыни</h2>')&&!str_contains($html,'<script>'),'safe shrine subheading');
 $site['blocks'][0]['extension']['items'][0]['value']='javascript:alert(1)';check((bool)site_validate($site)['errors'],'server tree validation');
-echo 'PASS '.PANEL_NUMBER.': contact security, automatic types, validation, save/edit/order/delete, JSON+ZIP round-trip, actual rendering, empty visibility and safe description'.PHP_EOL;
+echo 'PASS '.PANEL_NUMBER.': contact security, automatic types, validation, save/edit/order/delete, JSON+ZIP round-trip, actual rendering, translated empty state, explicit hiding and safe description'.PHP_EOL;

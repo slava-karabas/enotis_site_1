@@ -48,7 +48,7 @@ return [
     'cookie.ok'                  => 'Compris',
 
     "contacts.title" => "Contacts",
-    "contacts.hint" => "Téléphone, courriel ou lien HTTP(S). La légende facultative peut préciser un partenaire ou un diocèse. Les blocs vides sont masqués.",
+    "contacts.hint" => "Téléphone, courriel ou lien HTTP(S). Une légende peut préciser un partenaire ou un diocèse. Sans coordonnées, le site affiche un message. Désactivez « Afficher sur le site » pour masquer la section.",
     "contacts.value" => "Contact / lien",
     "contacts.label" => "Légende",
     "contacts.add" => "+ Ajouter un contact",
@@ -67,4 +67,5 @@ return [
     "contacts.vk" => "VK",
     "place.sections" => "Sections de la page",
     "place.about" => "Description",
+    "contacts.empty" => "Les coordonnées sont en cours de vérification et seront ajoutées ultérieurement.",
 ];

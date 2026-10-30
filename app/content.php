@@ -247,7 +247,7 @@ function is_visible(array $n): bool
         return false;
     }
     $extension = panel_block_extension($n);
-    if (($extension['kind'] ?? '') === 'contacts') return !empty($extension['items']);
+    if (($extension['kind'] ?? '') === 'contacts') return true;
     return match ($n['type']) {
         'text'           => $n['eyebrow'] || $n['title'] || $n['subtitle'] || $n['body'],
         'tile'           => (bool) $n['title'],

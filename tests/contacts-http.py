@@ -30,6 +30,14 @@ with zipfile.ZipFile(io.BytesIO(raw)) as z: portable=json.loads(z.read('site.jso
 assert portable['blocks'][0]['tiles'][0]['blocks'][0]['extension']==contacts
 saved['blocks'][0]['tiles'][0]['blocks'][0]['extension']['items']=[]
 assert post('/admin/api/save',saved)[0]==200
-h=req('/contacts-check')[1].decode();assert 'contacts__surface' not in h
-assert not re.search(r'<a href="#block-[^"]+">Контакты</a>',h),'empty contact navigation'
-print('PASS: authenticated contact preview without persistence, editor save, export, unsafe-save rejection and empty contact block')
+h=req('/contacts-check')[1].decode()
+empty_text='Контактная информация уточняется и будет добавлена позже.'
+assert 'contacts__surface' in h and empty_text in h
+assert re.search(r'<a href="#block-[^"]+">Контакты</a>',h),'empty contacts keep navigation'
+assert post('/admin/api/preview',saved)[0]==200
+h=req('/admin/preview?path=/contacts-check')[1].decode();assert empty_text in h and '#block-' in h
+saved['blocks'][0]['tiles'][0]['blocks'][0]['hidden']=True
+assert post('/admin/api/save',saved)[0]==200
+h=req('/contacts-check')[1].decode();assert 'contacts__surface' not in h and empty_text not in h
+assert not re.search(r'<a href="#block-[^"]+">Контакты</a>',h),'explicit hidden removes navigation'
+print('PASS: authenticated contact preview without persistence, editor save, export, unsafe-save rejection translated empty state with navigation, preview and explicit hiding')
