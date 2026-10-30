@@ -60,6 +60,7 @@ $cookieDoc = doc('cookies');
 <?php if (!preview_mode() && ($code = setting('counter_code'))): ?>
   <?= $code /* код счётчика из админки, вставляется как есть (раздел 9.2) */ ?>
 <?php endif ?>
+  <link rel="stylesheet" href="/assets/css/product-cards.css?v=<?=e(asset_version('/assets/css/product-cards.css'))?>">
 </head>
 <body<?= !empty($popup) ? ' class="is-locked"' : '' ?>>
 <a class="skip" href="#main"><?= e(t('site.skip')) ?></a>
@@ -72,5 +73,6 @@ $cookieDoc = doc('cookies');
   <button type="button" class="btn btn--ghost" data-cookie-ok><?= e(t('cookie.ok')) ?></button>
 </div>
 <?php endif ?>
+<script src="/assets/js/panel-blocks.js" defer></script>
 </body>
 </html>

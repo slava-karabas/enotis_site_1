@@ -1,18 +1,21 @@
 <?php
 $wine = $b['tiles_kind'] === 'wine';
-$size = $b['tiles_size'] ?: ($wine ? 'compact' : 'large');
+$size = $wine ? 'compact' : ($b['tiles_size'] ?: 'large');
 $frame = $wine ? '4x5' : str_replace(':', 'x', $b['frame'] ?: '4:5');
 $tiles = visible_children($b);
+$filter=panel_block_extension($b);
+$filterLabels=($filter['kind']??'')==='filters'?array_slice($filter['labels']??[],0,2):[];
 $GLOBALS['eager'] ??= 3;
 // Бейдж таба на плитках уровня 1 в ленте таба; на адресе одного таба его нет (раздел 5.4).
 $badge = ($b['section_id'] !== null && $b['parent_id'] === null && !single_tab()) ? (sections()[$b['section_id']]['title'] ?? null) : null;
 $sizes = $size === 'large' ? '(min-width: 1440px) 446px, (min-width: 1024px) calc((100vw - 104px) / 3), (min-width: 600px) calc((100vw - 80px) / 2), calc(100vw - 32px)'
                            : '(min-width: 1440px) 328px, (min-width: 1024px) calc((100vw - 128px) / 4), (min-width: 600px) calc((100vw - 104px) / 3), calc((100vw - 56px) / 2)';
 ?>
-<section class="wrap blk tiles tiles--<?= e($size) ?><?= $wine ? ' tiles--wine' : '' ?>"<?= eid($b['id']) ?>>
+<section class="wrap blk tiles tiles--<?= e($size) ?><?= $wine ? ' tiles--wine' : '' ?>"<?= eid($b['id']) ?><?php if (!empty($b['_page_anchor'])): ?> id="block-<?= (int)$b['id'] ?>"<?php endif ?> data-tile-filters>
 <?php if ($b['title']): ?>
   <h2 class="tiles__h"><?= e($b['title']) ?></h2>
 <?php endif ?>
+<?php foreach($filterLabels as $index=>$label):$values=[];foreach($tiles as $tile){$ext=panel_block_extension($tile);$v=$ext['values'][$index]??'';if($v!=='')$values[$v]=$v;} ?><label style="display:inline-block;margin:8px"><?=e($label)?> <select data-tile-filter="<?=(int)$index?>"><option value=""><?=e($filter['all']??'Все')?></option><?php foreach($values as $v):?><option value="<?=e($v)?>"><?=e($v)?></option><?php endforeach ?></select></label><?php endforeach ?>
   <ul class="grid">
 <?php foreach ($tiles as $t):
     $opens = tile_opens($t);
@@ -20,12 +23,12 @@ $sizes = $size === 'large' ? '(min-width: 1440px) 446px, (min-width: 1024px) cal
     $tag = $opens ? 'a' : 'div';
     $attr = $opens ? ' href="' . e(tile_url($t)) . '"' . ($opens === 'popup' ? ' data-popup-link="' . (int) $t['id'] . '"' : '') : '';
 ?>
-    <li<?= eid($t['id']) ?>>
-      <<?= $tag ?> class="card<?= $wine ? ' card--wine' : '' ?>"<?= $attr ?>>
+    <li<?= eid($t['id']) ?> data-filter-values="<?=e(json_encode(panel_block_extension($t)['values']??[]))?>">
+      <<?= $tag ?> class="card<?= $wine ? ' card--wine product-card' : '' ?>"<?= $attr ?>>
 <?php if ($t['photo']): ?>
-        <span class="frame frame--<?= $frame ?><?= $wine ? ' frame--wine' : '' ?>"><?= photo_img($t['photo'], $t['title'], $lazy, false, $sizes) ?><?php if ($badge && !$wine): ?><span class="badge"><?= e($badge) ?></span><?php endif ?></span>
+        <span class="frame frame--<?= $frame ?><?= $wine ? ' frame--wine product-image' : '' ?>"><?= photo_img($t['photo'], $t['title'], $lazy, false, $sizes) ?><?php if ($badge && !$wine): ?><span class="badge"><?= e($badge) ?></span><?php endif ?></span>
 <?php elseif ($wine): ?>
-        <span class="frame frame--4x5 frame--wine"><?= view('bottle') ?></span>
+        <span class="frame frame--4x5 frame--wine product-image"><?= view('bottle') ?></span>
 <?php endif ?>
         <span class="card__plate">
           <span class="card__text">

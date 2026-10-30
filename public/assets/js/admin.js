@@ -89,7 +89,7 @@
   function info(node) { return node ? META.get(node) : null; }
   function keyOf(node) { var i = info(node); return i ? i.key : String(node.id); }
   function tabsBlock() { return S.site.blocks.filter(function (b) { return b.type === 'tabs'; })[0] || null; }
-  // Лента элемента: таб или сайт — у неё валюта, формат реквизитов, владелец, карты, цены вин (раздел 3.4).
+  // Лента элемента: таб или сайт — у неё валюта, владелец, карты, цены вин (раздел 3.4).
   function feedOf(node) { var i = info(node); return (i && i.tab) || S.site.settings; }
   function tabSlugOf(tb) { return tb.slug || S.idmap['tabslug:' + tb.id] || ''; }
   // Префикс адреса таба в превью: на адресе одного таба его нет (раздел 4.5).
@@ -132,7 +132,7 @@
   var TEXT_FIELDS = {
     text: ['eyebrow', 'title', 'subtitle', 'text'], photo: ['caption'], tiles: ['title'],
     tile: ['title', 'subtitle', 'text', 'place', 'seo_title', 'seo_description'], wine: ['title', 'subtitle', 'grape', 'text'],
-    map: ['title'], pay: ['title', 'text', 'button', 'recipient'], service: ['title', 'text', 'price_note', 'button', 'recipient'],
+    map: ['title'], service: ['title', 'text', 'price_note'],
     tab: ['title'], tabs: []
   };
   function kindOf(node) {
@@ -163,6 +163,11 @@
       S.site = j.site; S.meta = j.meta; S.priv = j.private;
       S.lang = mainLang(); S.pvLang = mainLang();
       reindex();
+      var anchor=decodeURIComponent(location.hash.slice(1));
+      if(anchor==='content')anchor=String(S.site.blocks[0]?.id||'set:main');
+      if(anchor==='payment')anchor=String(S.site.blocks.find(function(b){return b.type==='pay';})?.id||'set:main');
+      if(anchor==='header'||anchor==='footer'||anchor.startsWith('set:'))S.sel=anchor;
+      else if(anchor)S.sel=anchor;
       renderAll();
       schedulePreview(0);
       api('GET', 'update').then(function (u) { S.upd = u; renderUpbar(); }).catch(function () {});
@@ -197,6 +202,9 @@
 
   var TYPE_LABEL = function (node) {
     var k = kindOf(node);
+    if(node.extension?.kind==='contacts')return t('contacts.title');
+    if(node.extension?.kind==='products')return 'Подборка товаров';
+    if(node.extension?.kind==='gift')return 'Подарочный конструктор';
     return t('type.' + k);
   };
 
@@ -225,25 +233,85 @@
     return '';
   }
 
-  function renderTree() {
-    var root = $('[data-tree]');
-    var keepScroll = root.scrollTop;
-    root.innerHTML = '';
-    var L = launchItems(), done = L.filter(function (x) { return x.ok; }).length;
-    var lrow = fixedRow('launch', done === L.length ? '✓ ' + t('launch.ready') : t('launch.title'), done === L.length ? '' : t('launch.count', { n: done, m: L.length }));
-    if (done === L.length) lrow.classList.add('row--ok');
-    root.appendChild(lrow);
-    root.appendChild(fixedRow('header', t('tree.header'), t('tree.all_pages')));
-    var home = h('div', { class: 'grp' }, [h('div', { class: 'grp__h' }, [h('span', { text: t('tree.home') })])]);
-    home.appendChild(blockList(S.site.blocks, null));
-    root.appendChild(home);
-    root.appendChild(fixedRow('footer', t('tree.footer'), t('tree.all_pages')));
-    var set = h('div', { class: 'grp' }, [h('div', { class: 'grp__h' }, [h('span', { text: t('tree.settings') })])]);
-    ['main', 'design', 'langs', 'domains', 'operators', 'docs', 'social', 'mail', 'backups', 'transfer', 'advanced', 'update'].forEach(function (k) {
-      set.appendChild(fixedRow('set:' + k, t('set.' + k), ''));
+  var PANEL_BOOT=JSON.parse(document.getElementById('boot').textContent);
+  function panelInput(label,value,change) {
+    var input=h('input',{type:'text',value:value});input.value=value;
+    input.addEventListener('input',function(){change(input.value);changed();});return field(label,input);
+  }
+  function contactsForm(f,b) {
+    f.appendChild(textField(b,'title',t('contacts.title'),60));
+    f.appendChild(h('p',{class:'hint',text:t('contacts.hint')}));
+    var items=b.extension.items;
+    items.forEach(function(item,index){
+      var card=h('div',{class:'card'});
+      card.appendChild(panelInput(t('contacts.value'),item.value,function(v){item.value=v;}));
+      card.appendChild(panelInput(t('contacts.label'),item.label||'',function(v){item.label=v;}));
+      var actions=h('div',{class:'two'});
+      function move(delta){var to=index+delta;if(to<0||to>=items.length)return;items.splice(to,0,items.splice(index,1)[0]);changed();renderForm();}
+      actions.appendChild(h('button',{type:'button',class:'btn btn--ghost',text:'↑',disabled:index===0,'aria-label':t('contacts.up'),onclick:function(){move(-1);}}));
+      actions.appendChild(h('button',{type:'button',class:'btn btn--ghost',text:'↓',disabled:index===items.length-1,'aria-label':t('contacts.down'),onclick:function(){move(1);}}));
+      card.appendChild(actions);
+      card.appendChild(h('button',{type:'button',class:'btn btn--danger',text:t('contacts.remove'),onclick:function(){items.splice(index,1);changed();renderForm();}}));
+      f.appendChild(card);
     });
-    root.appendChild(set);
-    root.scrollTop = keepScroll;
+    f.appendChild(h('button',{type:'button',class:'btn',text:t('contacts.add'),disabled:items.length>=50,onclick:function(){items.push({value:'',label:''});changed();renderForm();}}));
+  }
+
+  function panelExtensionForm(f,b) {
+    var ext=b.extension;
+    f.appendChild(textField(b,'title','Заголовок',60));
+    f.appendChild(h('p',{class:'hint',text:'Товары берутся из общего каталога. Повторно создавать карточки не нужно.'}));
+    f.appendChild(h('a',{class:'btn',href:'/admin/shop/products',text:'Открыть каталог'}));
+    f.appendChild(panelInput('Число товаров (1–100)',ext.limit||12,function(v){ext.limit=Math.max(1,Math.min(100,Number(v)||12));}));
+    if(ext.kind==='products')f.appendChild(toggle('Поиск в подборке',ext.filter,function(v){ext.filter=v;changed();}));
+    if(ext.kind==='gift') {
+      f.appendChild(panelInput('Коробка · доплата, €',(ext.box_minor||0)/100,function(v){ext.box_minor=Math.max(0,Math.round((Number(v.replace(',','.'))||0)*100));}));
+      f.appendChild(panelInput('Открытка · доплата, €',(ext.card_minor||0)/100,function(v){ext.card_minor=Math.max(0,Math.round((Number(v.replace(',','.'))||0)*100));}));
+    }
+    f.appendChild(section('Товары в блоке'));
+    var list=h('div',{class:'card',text:'Загружаем каталог…'});f.appendChild(list);
+    api('GET','catalogue').then(function(j){list.innerHTML='';if(!j.products.length)list.appendChild(h('p',{class:'hint',text:'Сначала добавьте товары в каталог.'}));
+      list.appendChild(h('p',{class:'hint',text:'Ничего не отмечено — все опубликованные товары. Отметьте нужные для ограниченной подборки.'}));
+      j.products.forEach(function(p){list.appendChild(toggle(p.name+' · '+p.price,ext.ids.indexOf(p.id)>=0,function(on){ext.ids=on?ext.ids.concat([p.id]):ext.ids.filter(function(id){return id!==p.id;});changed();}));});
+    }).catch(function(){list.textContent='Не удалось загрузить каталог. Обновите страницу.';});
+  }
+  function panelTileFilters(f,b,k) {
+    if(k==='tiles') {
+      f.appendChild(section('Фильтры плиток'));
+      var enabled=b.extension&&b.extension.kind==='filters';
+      f.appendChild(toggle('Включить фильтры',enabled,function(on){b.extension=on?{kind:'filters',labels:['Регион'],all:'Все'}:{};changed();renderForm();}));
+      if(enabled){f.appendChild(panelInput('Названия уровней через ; (до двух)',b.extension.labels.join('; '),function(v){b.extension.labels=v.split(';').map(function(s){return s.trim();}).filter(Boolean).slice(0,2);}));f.appendChild(panelInput('Название варианта «Все»',b.extension.all||'Все',function(v){b.extension.all=v;}));f.appendChild(h('p',{class:'hint',text:'Значения фильтра задаются в каждой плитке. Фильтр отбирает один список, вкладки переключают разные блоки.'}));}
+    } else if(k==='tile'||k==='wine') {
+      f.appendChild(section('Значения фильтров'));
+      f.appendChild(panelInput('Значения уровней через ;',(b.extension?.values||[]).join('; '),function(v){b.extension={kind:'values',values:v.split(';').map(function(s){return s.trim();}).slice(0,2)};}));
+    }
+  }
+
+  function renderTree() {
+    var root = $('[data-tree]'), keepScroll = root.scrollTop; root.innerHTML = '';
+    root.appendChild(fixedRow('header', 'Шапка', t('tree.all_pages')));
+    var home = h('div', {class:'grp'}, [h('div',{class:'grp__h',text:'Содержимое'})]);
+    home.appendChild(blockList(S.site.blocks, null));
+    // Render the actual list, not a detached copy: additions must save into S.site.blocks.
+    var add = home.lastElementChild.lastElementChild;
+    if(add) { var realAdd=h('button',{type:'button',class:'add',text:'+ Добавить блок',onclick:function(e){addBlockMenu(e.currentTarget,S.site.blocks,null);}}); add.replaceWith(realAdd); }
+    root.appendChild(home);
+    if(PANEL_BOOT.panel==='2') {
+      var shop=h('div',{class:'grp'},[h('div',{class:'grp__h',text:'Магазин'})]);
+      [['products','Каталог'],['orders','Заказы']].forEach(function(it){shop.appendChild(h('a',{class:'row row--fixed',href:'/admin/shop/'+it[0],text:it[1]}));});root.appendChild(shop);
+    }
+    if(PANEL_BOOT.payments) {
+      var pay=h('div',{class:'grp'},[h('div',{class:'grp__h',text:'Оплата'})]);
+      S.site.blocks.filter(function(b){return b.type==='pay';}).forEach(function(b){pay.appendChild(nodeRow(b,S.site.blocks,S.site.blocks.indexOf(b)));});
+      pay.appendChild(h('button',{type:'button',class:'add',text:'+ Способ оплаты',onclick:function(){var existing=S.site.blocks.find(function(b){return b.type==='pay';});if(existing)select(String(existing.id));else addBlock(S.site.blocks,'pay',null);}}));root.appendChild(pay);
+    }
+    var footer=h('div',{class:'grp'},[h('div',{class:'grp__h',text:'Подвал'}),fixedRow('footer','Контакты и подпись','')]);
+    [['operators','Организация и реквизиты'],['social','Соцсети'],['docs','Документы и Cookies']].forEach(function(it){footer.appendChild(fixedRow('set:'+it[0],it[1],''));});root.appendChild(footer);
+    var integrations=h('div',{class:'grp'},[h('div',{class:'grp__h',text:'Интеграции'}),h('a',{class:'row row--fixed',href:'/admin/integrations',text:'Уведомления, CRM и API'})]);
+    [['mail','Отправка писем'],['advanced','ИИ-обработка и аналитика']].forEach(function(it){integrations.appendChild(fixedRow('set:'+it[0],it[1],''));});root.appendChild(integrations);
+    var set=h('div',{class:'grp'},[h('div',{class:'grp__h',text:'Настройки сайта'})]);
+    [['main','Основное'],['langs','Языки сайта'],['design','Иконка и обложка'],['domains','Домены'],['transfer','Перенос сайта'],['backups','Резервные копии'],['update','Обновление']].forEach(function(it){set.appendChild(fixedRow('set:'+it[0],it[1],''));});
+    set.appendChild(fixedRow('launch','Проверка перед запуском',''));root.appendChild(set);root.scrollTop=keepScroll;
   }
 
   function fixedRow(key, label, tag) {
@@ -275,7 +343,7 @@
 
   function blockList(list, ownerTile) {
     var wrap = h('div', { class: 'kids' });
-    list.forEach(function (b, i) { wrap.appendChild(nodeRow(b, list, i)); });
+    list.forEach(function (b, i) { if(list===S.site.blocks&&b.type==='pay')return; wrap.appendChild(nodeRow(b, list, i)); });
     var add = h('button', { type: 'button', class: 'add', text: '+ ' + t('tree.add_block'), onclick: function (e) { addBlockMenu(e.currentTarget, list, ownerTile); } });
     wrap.appendChild(add);
     return wrap;
@@ -356,7 +424,7 @@
 
   /* ---------------------------------------------------------------- добавить и удалить */
 
-  var BLOCK_TYPES = ['text', 'photo', 'tiles', 'map', 'pay', 'service', 'tabs'];
+  var BLOCK_TYPES = ['text', 'photo', 'tiles', 'map', 'service', 'tabs'];
   function keepTabsLast(list) {
     var i = list.findIndex(function (b) { return b.type === 'tabs'; });
     if (i >= 0 && i !== list.length - 1) list.push(list.splice(i, 1)[0]);
@@ -364,8 +432,8 @@
   function addBlockMenu(anchor, list, ownerTile) {
     closeMenus();
     var menu = h('div', { class: 'menu', role: 'menu' });
-    BLOCK_TYPES.forEach(function (type) {
-      var taken = (type === 'map' || type === 'pay') && list.some(function (b) { return b.type === type; });
+    BLOCK_TYPES.filter(function(type){return type!=='pay';}).forEach(function (type) {
+      var taken = (type === 'map') && list.some(function (b) { return b.type === type; });
       var why = taken ? t('add.taken') : t('add.hint.' + type);
       if (type === 'tabs') {
         if (list !== S.site.blocks) { taken = true; why = t('add.only_home'); }
@@ -376,6 +444,10 @@
       ]);
       menu.appendChild(item);
     });
+    if(PANEL_BOOT.panel==='2') [['products','Подборка товаров'],['gift','Подарочный конструктор']].forEach(function(entry){
+      menu.appendChild(h('button',{type:'button',role:'menuitem',text:entry[1],onclick:function(){closeMenus();var b=emptyBlock('text');b.title=obj(entry[1]);b.extension={kind:entry[0],ids:[],limit:12,filter:false,box_minor:0,card_minor:0};list.push(b);keepTabsLast(list);changed();select(String(b.id));}}));
+    });
+    menu.appendChild(h('button',{type:'button',role:'menuitem',text:t('contacts.title'),onclick:function(){closeMenus();var b=emptyBlock('text');b.title=obj(t('contacts.title'));b.extension={kind:'contacts',items:[]};list.push(b);keepTabsLast(list);changed();select(String(b.id));}}));
     anchor.after(menu);
     setTimeout(function () { document.addEventListener('click', closeMenus, { once: true }); });
   }
@@ -387,8 +459,7 @@
     if (type === 'photo') Object.assign(b, { photo: null, caption: {}, aspect: '3:2', width: 'full' });
     if (type === 'tiles') Object.assign(b, { title: {}, size: 'large', aspect: '4:5', kind: 'normal', tiles: [] });
     if (type === 'map') Object.assign(b, { title: {} });
-    if (type === 'pay') Object.assign(b, { title: {}, text: {}, button: {}, recipient: {}, methods: [] });
-    if (type === 'service') Object.assign(b, { title: {}, text: {}, price: null, price_note: {}, button: obj(t('default.order_button')), url: '', recipient: {} });
+    if (type === 'service') Object.assign(b, { title: {}, text: {}, price: null, price_note: {} });
     return b;
   }
   function obj(v) { var o = {}; o[mainLang()] = v; return o; }
@@ -405,7 +476,7 @@
   // Новый таб — с настройками сайта (раздел 10.4).
   function newTab(title, hidden) {
     var s = S.site.settings;
-    return { id: newId(), slug: '', title: obj(title), hidden: hidden, currency: s.currency, req_format: s.req_format,
+    return { id: newId(), slug: '', title: obj(title), hidden: hidden, currency: s.currency,
              operator: s.operator, maps: s.maps, show_prices: s.show_prices, blocks: [] };
   }
 
@@ -471,7 +542,7 @@
       if (k === 'tabs' && node.tabs.length) {
         var tb = node.tabs[0], s = S.site.settings;
         Array.prototype.push.apply(S.site.blocks, tb.blocks);
-        ['currency', 'req_format', 'operator', 'maps', 'show_prices'].forEach(function (f) { s[f] = tb[f]; });
+        ['currency', 'operator', 'maps', 'show_prices'].forEach(function (f) { s[f] = tb[f]; });
       }
       // Адрес удалённого таба показывает весь сайт.
       var gone = k === 'tabs' ? node.tabs : (k === 'tab' ? [node] : []);
@@ -680,7 +751,7 @@
   function section(title) { return h('h3', { class: 'fsec', text: title }); }
 
   function pathOf(node) {
-    var parts = [t('tree.home')];
+    var parts = ['Содержимое'];
     var i = info(node);
     if (i && i.tab && i.kind !== 'tab') parts.push(txAny(i.tab.title) || t('type.tab'));
     if (i && i.tile) parts.push(txAny(i.tile.title) || t('type.tile'));
@@ -694,7 +765,8 @@
     var M = S.meta.max[k] || {};
     var f = h('div', { class: 'fbody' });
     root.appendChild(f);
-    FORMS[k](f, node, M);
+    if(node.extension?.kind==='contacts')contactsForm(f,node); else if(['products','gift'].indexOf(node.extension?.kind)>=0)panelExtensionForm(f,node); else FORMS[k](f,node,M);
+    panelTileFilters(f,node,k);
     var del = k === 'tab' ? t('tab.delete_all', { n: countInside(node) }) : t('tree.delete');
     root.appendChild(h('div', { class: 'ffoot' }, [h('button', { type: 'button', class: 'btn btn--danger', text: del, onclick: function () { removeNode(node); } })]));
   }
@@ -725,7 +797,7 @@
         b.tiles.forEach(function (tl) { if (tl.photo) { tl.photo.crop = null; tl.photo._thumb = null; } });
         changed(); renderForm();
       }, b.tiles.length ? t('hint.kind_change') : null));
-      f.appendChild(seg(t('field.size'), [['large', t('size.tiles_large')], ['compact', t('size.tiles_compact')]], b.size, function (v) { b.size = v; changed(); renderForm(); }));
+      if (b.kind !== 'wine') f.appendChild(seg(t('field.size'), [['large', t('size.tiles_large')], ['compact', t('size.tiles_compact')]], b.size, function (v) { b.size = v; changed(); renderForm(); }));
       if (b.kind === 'wine') f.appendChild(h('p', { class: 'hint', text: t('hint.wine_frame') }));
       else f.appendChild(seg(t('field.frame'), [['4:5', t('frame.4:5')], ['3:2', t('frame.3:2')]], b.aspect, function (v) {
         if (v === b.aspect) return;
@@ -743,6 +815,7 @@
       f.appendChild(textField(tl, 'subtitle', t('field.tile_subtitle'), M.subtitle, { hint: t('hint.tile_subtitle') }));
       var o = opens(tl);
       f.appendChild(textField(tl, 'text', t('field.text'), M.text, { area: true, rows: 7, hint: o === 'page' || o === 'static' ? t('hint.text_page') : t('hint.text_popup') }));
+      f.appendChild(h('p',{class:'hint',text:t('contacts.description')}));
       f.appendChild(section(t('sec.place')));
       f.appendChild(textField(tl, 'place', t('field.place'), M.place));
       var two = h('div', { class: 'two' }, [
@@ -824,15 +897,6 @@
       pts.forEach(function (tl) { ul.appendChild(h('li', {}, [h('button', { type: 'button', class: 'linkbtn', text: txAny(tl.title) || '—', onclick: function () { select(String(tl.id)); } })])); });
       f.appendChild(ul);
     },
-    pay: function (f, b, M) {
-      f.appendChild(h('p', { class: 'hint', text: t('hint.pay_one') }));
-      f.appendChild(textField(b, 'title', t('field.title'), M.title, { placeholder: t('ph.pay_title') }));
-      f.appendChild(textField(b, 'text', t('field.text'), M.text, { area: true, rows: 3 }));
-      f.appendChild(textField(b, 'button', t('field.button'), M.button, { placeholder: t('ph.pay_button') }));
-      f.appendChild(textField(b, 'recipient', t('field.recipient'), M.recipient, { hint: t('hint.recipient') }));
-      f.appendChild(section(t('sec.methods')));
-      f.appendChild(methodsEditor(b));
-    },
     service: function (f, b, M) {
       f.appendChild(textField(b, 'title', t('field.title'), M.title, { placeholder: t('ph.service_title') }));
       f.appendChild(textField(b, 'text', t('field.text'), M.text, { area: true, rows: 4 }));
@@ -840,9 +904,6 @@
         plainField(b, 'price', t('field.price') + ' (' + feedOf(b).currency + ')', { number: true, inputmode: 'decimal', hint: t('hint.price_empty') }),
         textField(b, 'price_note', t('field.price_note'), M.price_note, { placeholder: t('ph.price_note') })
       ]));
-      f.appendChild(textField(b, 'button', t('field.button'), M.button));
-      f.appendChild(plainField(b, 'url', t('field.pay_url'), { type: 'url', placeholder: 'https://', hint: t('hint.service_url') }));
-      f.appendChild(textField(b, 'recipient', t('field.service_by'), M.recipient));
     }
   };
 
@@ -910,8 +971,7 @@
   // Настройки «страны» ленты: у сайта без табов и у каждого таба одинаковые (раздел 3.4).
   function feedFields(f, s) {
     f.appendChild(h('div', { class: 'two' }, [
-      select_(t('field.currency'), [['RUB', 'RUB ₽'], ['GEL', 'GEL ₾'], ['EUR', 'EUR €'], ['USD', 'USD $']], s.currency, function (v) { s.currency = v; changed(); }),
-      select_(t('field.req_format'), [['RU', t('fmt.RU')], ['GE', t('fmt.GE')], ['other', t('fmt.other')]], s.req_format, function (v) { s.req_format = v; changed(); renderForm(); })
+      select_(t('field.currency'), [['RUB', 'RUB ₽'], ['GEL', 'GEL ₾'], ['EUR', 'EUR €'], ['USD', 'USD $']], s.currency, function (v) { s.currency = v; changed(); })
     ]));
     f.appendChild(select_(t('field.operator'), [[null, '—']].concat(S.site.operators.map(function (o) { return [o.id, o.name || '—']; })), s.operator, function (v) {
       s.operator = v === null ? null : (isNaN(+v) ? v : +v); changed();
@@ -1088,7 +1148,7 @@
         f.appendChild(box);
       });
       f.appendChild(h('button', { type: 'button', class: 'btn btn--ghost', text: '+ ' + t('op.add'), onclick: function () {
-        S.site.operators.push({ id: newId(), name: '', country: S.site.settings.req_format === 'GE' ? 'GE' : 'RU', tax_id: '', reg_no: '', address: '', email: '' });
+        S.site.operators.push({ id: newId(), name: '', country: 'RU', tax_id: '', reg_no: '', address: '', email: '' });
         changed(); renderForm();
       } }));
       root.appendChild(f);
@@ -1499,28 +1559,23 @@
     if (!S.site || !S.priv) return [];
     var s = S.site.settings, items = [];
     var blocks = allNodes().filter(function (i) { return i.kind === 'block' && shownNode(i); });
-    var pays = blocks.filter(function (i) { return i.node.type === 'pay'; });
     var services = blocks.filter(function (i) { return i.node.type === 'service'; });
     items.push({ key: 'name', ok: filledAll(s.site_title), go: 'set:main' });
     items.push({ key: 'brand', ok: !!(s.logo && s.favicon), go: 'set:design' });
     items.push({ key: 'og', ok: !!s.og_image, go: 'set:design' });
     items.push({ key: 'seo', ok: filledAll(s.seo_title) && filledAll(s.seo_description), go: 'set:main' });
-    if (pays.length || services.length) {
+    if (services.length) {
       var feeds = [];
-      pays.concat(services).forEach(function (i) { var fd = feedOf(i.node); if (feeds.indexOf(fd) < 0) feeds.push(fd); });
+      services.forEach(function (i) { var fd = feedOf(i.node); if (feeds.indexOf(fd) < 0) feeds.push(fd); });
       var okOwner = feeds.every(function (fd) {
         var op = S.site.operators.filter(function (o) { return String(o.id) === String(fd.operator); })[0];
         return op && String(op.name || '').trim() && String(op.tax_id || '').trim() && String(op.address || '').trim();
       });
       items.push({ key: 'owner', ok: okOwner, go: 'set:operators' });
     }
-    if (pays.length || services.length || (S.priv.counter_code || '').trim()) {
+    if (services.length || (S.priv.counter_code || '').trim()) {
       var d = S.site.docs || {};
       items.push({ key: 'docs', ok: !!(d.offer && d.offer.show && d.privacy && d.privacy.show), go: 'set:docs' });
-    }
-    if (pays.length) {
-      var bad = pays.filter(function (i) { return !(i.node.methods || []).some(function (m) { return m.on; }); })[0];
-      items.push({ key: 'pay', ok: !bad && !!S.priv.payment_checked, go: bad ? keyOf(bad.node) : 'launch', manual: true });
     }
     items.push({ key: 'mail', ok: !!(BOOT.admin.email && S.priv.mail_test_ok), go: 'set:mail' });
     if (multi()) {
@@ -1540,90 +1595,10 @@
         h('span', { class: 'chk__m', 'aria-hidden': 'true', text: it.ok ? '✓' : '○' }),
         h('span', { class: 'chk__t' }, [h('b', { text: t('launch.' + it.key) }), h('small', { text: t('launch.' + it.key + '_hint') })])
       ]));
-      if (it.manual) {
-        f.appendChild(toggle(t('launch.pay_checked'), S.priv.payment_checked, function (v) { S.priv.payment_checked = v; changed(); renderForm(); }));
-      }
     });
     root.appendChild(f);
   }
 
-
-  /* ---------------------------------------------------------------- способы оплаты (раздел 10.7) */
-
-  var REQ_FIELDS = {
-    RU: ['recipient', 'inn', 'bank', 'bik', 'account'],
-    GE: ['recipient', 'code', 'bank', 'iban', 'swift'],
-    other: ['recipient', 'bank', 'iban', 'swift']
-  };
-
-  function providerLabel(code) {
-    var l = S.meta.provider_labels[code] || {};
-    return l[S.lang] || l.ru || code;
-  }
-
-  function methodsEditor(b) {
-    var box = h('div', { class: 'methods' });
-    box.appendChild(h('p', { class: 'hint', text: t('hint.methods_order') }));
-    b.methods.forEach(function (m, i) {
-      var head = h('div', { class: 'meth__h', draggable: 'true' }, [
-        h('span', { class: 'row__drag', text: '⋮⋮' }),
-        toggle('', m.on, function (v) { m.on = v; changed(); }),
-        h('b', { text: m.provider === 'custom' ? t('pay.custom') : providerLabel(m.provider) }),
-        h('button', { type: 'button', class: 'row__x', title: t('tree.delete'), text: '✕', onclick: function () { b.methods.splice(i, 1); changed(); renderForm(); } })
-      ]);
-      dragSetup(head, b.methods, i);
-      var card = h('div', { class: 'meth' + (m.on ? '' : ' is-off') }, [head]);
-      if (m.kind === 'link') {
-        card.appendChild(plainField(m, 'url', t('field.pay_url'), { type: 'url', placeholder: 'https://' }));
-        card.appendChild(textField(m, 'label', t('field.method_label'), S.meta.max.method.label, { placeholder: m.provider === 'custom' ? '' : providerLabel(m.provider), hint: t('hint.method_label') }));
-      } else if (m.kind === 'qr') {
-        card.appendChild(qrField(m));
-      } else if (m.kind === 'requisites') {
-        m.req = m.req && typeof m.req === 'object' ? m.req : {};
-        var fmt = feedOf(b).req_format;
-        REQ_FIELDS[fmt].forEach(function (k) { card.appendChild(plainField(m.req, k, t('req.' + (fmt === 'other' && k === 'iban' ? 'iban_account' : k)))); });
-        if (!m.req.purpose || typeof m.req.purpose !== 'object') m.req.purpose = {};
-        card.appendChild(textField(m.req, 'purpose', t('req.purpose'), 140, { placeholder: t('req.purpose_default') }));
-      }
-      box.appendChild(card);
-    });
-    var addBtn = h('button', { type: 'button', class: 'btn btn--ghost', text: '+ ' + t('pay.add'), onclick: function (e) {
-      closeMenus();
-      var fmt = feedOf(b).req_format;
-      var menu = h('div', { class: 'menu', role: 'menu' });
-      Object.keys(S.meta.providers).forEach(function (code) {
-        var p = S.meta.providers[code];
-        if (p.format !== 'all' && p.format !== fmt) return;
-        var taken = (p.kind === 'qr' || p.kind === 'requisites') && b.methods.some(function (m) { return m.kind === p.kind; });
-        menu.appendChild(h('button', { type: 'button', role: 'menuitem', disabled: taken, onclick: function () {
-          closeMenus();
-          var m = { id: newId(), kind: p.kind, provider: code, on: true, url: '', image: '', label: {}, req: p.kind === 'requisites' ? { purpose: {} } : null };
-          b.methods.push(m); changed(); renderForm();
-        } }, [h('b', { text: code === 'custom' ? t('pay.custom') : providerLabel(code) })]));
-      });
-      e.currentTarget.after(menu);
-      setTimeout(function () { document.addEventListener('click', closeMenus, { once: true }); });
-    } });
-    box.appendChild(addBtn);
-    box.appendChild(h('p', { class: 'hint', text: t('hint.methods_check') }));
-    return box;
-  }
-
-  function qrField(m) {
-    var img = m.image ? h('img', { src: '/uploads/' + m.image, alt: 'QR', class: 'qr__img' }) : h('span', { class: 'qr__none', text: t('photo.none') });
-    var input = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp', hidden: true });
-    input.addEventListener('change', function () {
-      if (!input.files[0]) return;
-      var fd = new FormData();
-      fd.append('file', input.files[0]);
-      api('POST', 'qr', fd, true).then(function (j) {
-        if (j.image) { m.image = j.image; changed(); renderForm(); }
-        else alertBox(t(j.error || 'photo.upload_failed'));
-      });
-    });
-    return h('div', { class: 'qr' }, [img, h('button', { type: 'button', class: 'btn btn--ghost', text: m.image ? t('photo.replace') : t('photo.upload'), onclick: function () { input.click(); } }), input,
-      h('small', { class: 'hint', text: t('hint.qr') })]);
-  }
 
   /* ---------------------------------------------------------------- фото (раздел 10.6) */
 

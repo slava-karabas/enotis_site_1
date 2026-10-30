@@ -5,6 +5,8 @@ $strings = array_merge($strings, lang_strings('admin', $ui));
 $boot = [
     'csrf'  => $csrf,
     'ui'    => $ui,
+    'panel' => PANEL_NUMBER,
+    'payments' => PANEL_PAYMENTS,
     'admin' => ['login' => $admin['login'], 'email' => (string) $admin['email'], 'ui_lang' => $admin['ui_lang']],
     't'     => $strings,
 ];
@@ -12,11 +14,12 @@ $boot = [
 <?= view('admin/head', ['ui' => $ui, 'title' => ta('app.title', $ui)]) ?>
   <link rel="stylesheet" href="/assets/vendor/cropper/cropper.min.css?v=<?= ENGINE_VERSION ?>">
   <script src="/assets/vendor/cropper/cropper.min.js?v=<?= ENGINE_VERSION ?>" defer></script>
-  <script src="/assets/js/admin.js?v=<?= ENGINE_VERSION ?>" defer></script>
+  <script src="/assets/js/admin.js?v=<?= e(asset_version('/assets/js/admin.js')) ?>" defer></script>
   <script type="application/json" id="boot"><?= json_encode($boot, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
 </head>
 <body class="app">
 <header class="top">
+  <span class="top__product">№<?=e(PANEL_NUMBER)?></span>
   <div class="top__site" data-site-name></div>
   <div class="top__status" data-status></div>
   <div class="top__acts">
