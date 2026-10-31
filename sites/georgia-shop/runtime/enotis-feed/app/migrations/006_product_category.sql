@@ -1,0 +1,1 @@
+ALTER TABLE shop_products ADD COLUMN category TEXT NOT NULL DEFAULT '';

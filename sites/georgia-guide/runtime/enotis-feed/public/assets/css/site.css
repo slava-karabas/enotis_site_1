@@ -400,3 +400,7 @@ html{scroll-padding-top:85px}.guide-nav a:focus-visible{outline:2px solid var(--
 /* Final identity spacing: closer wordmark, raised by three design units. */
 .hdr__wordmark svg,.ftr__wordmark svg{width:189px;height:60px}
 @media(max-width:600px){.hdr__wordmark svg{width:142px;height:45px}}
+
+.wine-photo-note{position:absolute;bottom:12px;left:12px;right:12px;padding:7px 9px;border-radius:8px;background:rgba(247,245,240,.95);color:#6D6460;text-align:center;font-size:13px;line-height:1.3}.bottle-placeholder{display:block;width:100%;height:100%;object-fit:contain}.card--wine .card__sub{overflow-wrap:anywhere}
+
+.frame--wine img,.product-image img{mix-blend-mode:multiply}.product-image{isolation:isolate}.wine-catalog-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px}.wine-catalog-layout .tiles{padding:0;width:100%}.wine-catalog-layout .grid{grid-template-columns:repeat(3,minmax(0,1fr))}.wine-catalog-layout aside label{display:block;margin-bottom:12px}.wine-catalog-layout select{width:100%;padding:10px;font:inherit}@media(max-width:899px){.wine-catalog-layout{grid-template-columns:1fr}.wine-catalog-layout .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

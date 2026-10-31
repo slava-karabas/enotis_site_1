@@ -5,6 +5,14 @@ function panel_extension(mixed $v, string $type='text'): array {
     if($v===null||$v===[])return [];
     if(!is_array($v)||strlen(json_encode($v))>32000)throw new InvalidArgumentException('Некорректная настройка блока');
     $kind=$v['kind']??'';
+    if($kind==='wine_reference'){
+        if($type!=='tile')throw new InvalidArgumentException('Сведения о вине допустимы только у карточки');
+        $source=trim((string)($v['source']??''));
+        if($source!=='' && (!filter_var($source,FILTER_VALIDATE_URL) || !in_array(parse_url($source,PHP_URL_SCHEME),['https','http'],true)))throw new InvalidArgumentException('Некорректный источник вина');
+        return ['kind'=>'wine_reference','source'=>$source,'photo_verified'=>!empty($v['photo_verified']),'sku'=>substr(preg_replace('/[^a-zA-Z0-9_-]/','',(string)($v['sku']??'')),0,100)];
+    }
+
+    if($kind==='wine_placeholder'){if($type!=='tile')throw new InvalidArgumentException('Заглушка допустима только у карточки');return ['kind'=>'wine_placeholder'];}
     if($kind==='contacts'){if($type!=='text')throw new InvalidArgumentException('Контакты должны быть отдельным блоком');return panel_contacts_config($v);}
     if(!in_array($kind,['products','gift','filters','values'],true)||PANEL_NUMBER!=='2'&&in_array($kind,['products','gift'],true))throw new InvalidArgumentException('Этот блок недоступен');
     $out=['kind'=>$kind];

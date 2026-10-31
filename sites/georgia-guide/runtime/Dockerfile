@@ -13,3 +13,4 @@ RUN chmod +x /usr/local/bin/enotis-preview \
     && find tests -name '*.sh' -exec chmod +x {} \;
 ENV ENOTIS_DATA=/data
 ENTRYPOINT ["/usr/local/bin/enotis-preview"]
+

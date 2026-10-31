@@ -299,6 +299,8 @@ function is_wine(array $tile): bool
 /** Как открывается плитка (раздел 3.2): 'page', 'popup' или null (не нажимается). */
 function tile_opens(array $tile): ?string
 {
+    // Demo cards must never resolve to a product popup or page.
+    if ((panel_block_extension($tile)['kind'] ?? '') === 'wine_placeholder') return null;
     if (!is_wine($tile) && tile_level($tile) === 1) {
         // Раздел 3.2: блоки внутри плитки делают её страницей; скрытые и непереведённые не считаются.
         if (visible_children($tile) || (int) $tile['as_page'] === 1) {

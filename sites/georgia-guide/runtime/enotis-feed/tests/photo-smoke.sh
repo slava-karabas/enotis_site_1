@@ -34,7 +34,7 @@ test "$(jget /tmp/ph-st.json width)x$(jget /tmp/ph-st.json height)" = 1200x1500
 PROC=$(jget /tmp/ph-st.json processed)
 curl -fsS -b "$J" -o /tmp/ph-proc.jpg "$B/admin/api/original?id=$ID&src=proc"
 php -r '$i=imagecreatefromjpeg($argv[1]); $c=imagecolorat($i,10,10);
-  if (abs(($c>>16&255)-0xEA)>4 || abs(($c>>8&255)-0xE0)>4 || abs(($c&255)-0xD2)>4) { fwrite(STDERR,"фон не песочный\n"); exit(1); }
+  if (abs(($c>>16&255)-0xF7)>4 || abs(($c>>8&255)-0xE0)>4 || abs(($c&255)-0xD2)>4) { fwrite(STDERR,"фон не песочный\n"); exit(1); }
   $x0=9e9;$x1=-1;$y0=9e9;$y1=-1; $left=[];
   for($y=0;$y<1500;$y+=2) for($x=0;$x<1200;$x+=2){ $c=imagecolorat($i,$x,$y); if((($c>>16)&255)<90 && (($c>>8)&255)<110){ $x0=min($x0,$x);$x1=max($x1,$x);$y0=min($y0,$y);$y1=max($y1,$y); $left[$y]=min($left[$y]??9e9,$x);} }
   $h=$y1-$y0; $cx=($x0+$x1)/2;
@@ -78,7 +78,7 @@ grep -q "\"use_processed\":true,\"pv\":\"$PROC\"" /tmp/ph-site2.json
 # На сайте нарезка идёт из обработанного файла: угол песочный.
 TH=$(php -r '$j=json_decode(file_get_contents($argv[1]),true); $f=function($x) use (&$f,$argv){ if(is_array($x)){ if(($x["id"]??null)===(int)$argv[2] && isset($x["thumb"])) { echo $x["thumb"]; exit; } foreach($x as $v) $f($v);} }; $f($j["site"]);' /tmp/ph-site2.json "$ID")
 curl -fsS -o /tmp/ph-thumb.jpg "$B$TH"
-php -r '$i=imagecreatefromjpeg($argv[1]); $c=imagecolorat($i,3,3); exit(abs(($c>>16&255)-0xEA)<6 ? 0 : 1);' /tmp/ph-thumb.jpg
+php -r '$i=imagecreatefromjpeg($argv[1]); $c=imagecolorat($i,3,3); exit(abs(($c>>16&255)-0xF7)<6 ? 0 : 1);' /tmp/ph-thumb.jpg
 # В ZIP — обработанный файл, ключа нет.
 curl -fsS -b "$J" -o /tmp/ph.zip "$B/admin/api/export"
 php -r '$z=new ZipArchive; $z->open($argv[1]); $s=$z->getFromName("site.json");

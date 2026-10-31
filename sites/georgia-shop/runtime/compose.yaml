@@ -1,0 +1,18 @@
+name: henotis-georgia-shop
+services:
+  site:
+    build: .
+    ports:
+      - "127.0.0.1:8090:8080"
+    environment:
+      HENOTIS_PROFILE: shop
+    volumes:
+      - ./preview-data:/data
+      - ./preview-uploads:/var/www/html/public/uploads
+      - ./preview-seed:/seed:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

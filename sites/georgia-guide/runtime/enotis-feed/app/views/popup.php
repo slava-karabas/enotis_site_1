@@ -31,6 +31,7 @@ $hid = 'pp-title-' . $t['id'];
 <?php if (!$wine && ($t['place'] || has_coords($t))): ?>
 <?= view('place', ['t' => $t]) ?>
 <?php endif ?>
+<?php $ref=panel_block_extension($t); if(($ref['kind']??'')==='wine_reference'&&!empty($ref['source'])): ?><p class="wine-source"><a href="<?= e($ref['source']) ?>" target="_blank" rel="noopener noreferrer">Источник сведений о вине</a></p><?php endif ?>
     </div>
   </div>
 </div>

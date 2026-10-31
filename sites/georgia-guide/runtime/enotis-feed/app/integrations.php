@@ -35,7 +35,7 @@ function integration_worker(int $limit=20): int {
             $cfg=integration_config();
             if($r['channel']==='email') {
                 if(!$cfg['email'])throw new RuntimeException('Канал отключён');
-                $error=send_mail($cfg['email'],'Энотис: новая заявка №'.$r['object_id'],"На сайте сохранена заявка №".$r['object_id'].".\nОткройте панель управления для просмотра и обработки.");
+                $error=send_mail($cfg['email'],'Хенотис: новая заявка №'.$r['object_id'],"На сайте сохранена заявка №".$r['object_id'].".\nОткройте панель управления для просмотра и обработки.");
                 if($error)throw new RuntimeException('Почта не приняла отправление');
             } else {
                 if(!$cfg['webhook'])throw new RuntimeException('Канал отключён');
