@@ -27,14 +27,14 @@ ID=$(jget /tmp/ph-up.json photo.id)
 curl -fsS -b "$J" -o /tmp/ph-site.json "$B/admin/api/site"
 test "$(jget /tmp/ph-site.json private.photo_ready)" = true
 
-# Студийное фото: 1200×1500 на песочном фоне, бутылка ~80 % высоты, дно на 8 % выше края, по центру, ровно.
+# Студийное фото: 1200×1500 на молочном фоне, бутылка ~80 % высоты, дно на 8 % выше края, по центру, ровно.
 post photo_process "{\"id\":$ID,\"mode\":\"studio\",\"aspect\":\"4:5\"}" > /tmp/ph-st.json
 test "$(jget /tmp/ph-st.json ok)" = true
 test "$(jget /tmp/ph-st.json width)x$(jget /tmp/ph-st.json height)" = 1200x1500
 PROC=$(jget /tmp/ph-st.json processed)
 curl -fsS -b "$J" -o /tmp/ph-proc.jpg "$B/admin/api/original?id=$ID&src=proc"
 php -r '$i=imagecreatefromjpeg($argv[1]); $c=imagecolorat($i,10,10);
-  if (abs(($c>>16&255)-0xF7)>4 || abs(($c>>8&255)-0xE0)>4 || abs(($c&255)-0xD2)>4) { fwrite(STDERR,"фон не песочный\n"); exit(1); }
+  if (abs(($c>>16&255)-0xF7)>4 || abs(($c>>8&255)-0xF5)>4 || abs(($c&255)-0xF0)>4) { fwrite(STDERR,"фон не молочный\n"); exit(1); }
   $x0=9e9;$x1=-1;$y0=9e9;$y1=-1; $left=[];
   for($y=0;$y<1500;$y+=2) for($x=0;$x<1200;$x+=2){ $c=imagecolorat($i,$x,$y); if((($c>>16)&255)<90 && (($c>>8)&255)<110){ $x0=min($x0,$x);$x1=max($x1,$x);$y0=min($y0,$y);$y1=max($y1,$y); $left[$y]=min($left[$y]??9e9,$x);} }
   $h=$y1-$y0; $cx=($x0+$x1)/2;
@@ -75,7 +75,7 @@ if grep -q 'SECRET' /tmp/ph-site2.json; then echo "ключ наружу"; exit 
 grep -q '"photo_key_masked":"••••abcd"' /tmp/ph-site2.json
 grep -q '"photo_service":"photoroom"' /tmp/ph-site2.json
 grep -q "\"use_processed\":true,\"pv\":\"$PROC\"" /tmp/ph-site2.json
-# На сайте нарезка идёт из обработанного файла: угол песочный.
+# На сайте нарезка идёт из обработанного файла: угол молочный.
 TH=$(php -r '$j=json_decode(file_get_contents($argv[1]),true); $f=function($x) use (&$f,$argv){ if(is_array($x)){ if(($x["id"]??null)===(int)$argv[2] && isset($x["thumb"])) { echo $x["thumb"]; exit; } foreach($x as $v) $f($v);} }; $f($j["site"]);' /tmp/ph-site2.json "$ID")
 curl -fsS -o /tmp/ph-thumb.jpg "$B$TH"
 php -r '$i=imagecreatefromjpeg($argv[1]); $c=imagecolorat($i,3,3); exit(abs(($c>>16&255)-0xF7)<6 ? 0 : 1);' /tmp/ph-thumb.jpg
