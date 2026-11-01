@@ -16,7 +16,7 @@ foreach (($mapTiles ?? map_points($b)) as $t) {
     ];
 }
 ?>
-<section class="wrap blk map"<?= eid($b['id']) ?>>
+<section id="block-<?= (int)$b['id'] ?>" class="wrap blk map"<?= eid($b['id']) ?>>
   <div class="map__head">
 <?php if ($b['title']): ?>
     <h2 class="map__h"><?= e($b['title']) ?></h2>

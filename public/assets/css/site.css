@@ -412,3 +412,5 @@ h1,h2,h3,.card__title,.hdr__title,.pp__name,.country-group__title{font-family:va
 
 /* Brand asset is managed by the editor, identical in header and footer. */
 .hdr__logo,.ftr__logo{width:189px;height:60px;max-width:100%;object-fit:contain;display:block}
+
+[id^="block-"],#monastery-about,#directions,#footer-social,#footer-contact{scroll-margin-top:100px}

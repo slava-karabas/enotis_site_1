@@ -37,7 +37,7 @@ function panel_shop_block(array $b,array $config): void {
     $rows=shop_public_products(current_lang());$ids=$config['ids']??[];if($ids)$rows=array_filter($rows,fn($p)=>in_array((int)$p['id'],$ids,true));
     $rows=array_slice(array_values($rows),0,$config['limit']??12);$title=$b['title']?:($config['kind']==='gift'?'Подарочный конструктор':'Подборка товаров');
     ?>
-<section class="wrap blk panel-shop" data-panel-products><h2><?=e($title)?></h2>
+<section id="block-<?= (int)$b['id'] ?>" class="wrap blk panel-shop" data-panel-products><h2><?=e($title)?></h2>
 <?php if($config['kind']==='products'): ?>
 <?php if(!empty($config['filter'])):?><label>Поиск <input type="search" data-panel-search></label><?php endif ?>
 <div class="cards"><?php foreach($rows as $p):?><article class="card" data-panel-card data-name="<?=e(mb_strtolower($p['name']))?>"><div class="card-content"><?php if($url=shop_image($p['photo_id']?(int)$p['photo_id']:null)):?><img src="<?=e($url)?>" alt="<?=e($p['name'])?>" style="width:100%;height:220px;object-fit:contain"><?php endif ?><h3><a href="<?=e(shop_link('/wine/'.$p['slug']))?>"><?=e($p['name'])?></a></h3><p><?=e(shop_money((int)$p['price_minor']))?></p><?php if($p['available']):?><form action="<?=e(shop_link('/cart'))?>" method="post"><input type="hidden" name="csrf" value="<?=e($_SESSION['shop_csrf'])?>"><input type="hidden" name="action" value="add"><input type="hidden" name="key" value="p:<?=(int)$p['id']?>"><input type="hidden" name="quantity" value="1"><button class="button primary">В корзину</button></form><?php endif ?></div></article><?php endforeach ?></div>
