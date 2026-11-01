@@ -9,16 +9,17 @@ $pdo->exec("INSERT OR IGNORE INTO shop_countries(id,code,position)VALUES(1,'GE',
 $pdo->exec("INSERT OR REPLACE INTO shop_country_i18n(country_id,lang,name)VALUES(1,'ru','Грузия')");
 foreach($site['blocks'][1]['tabs'] as $tab)foreach($tab['blocks'] as $b)foreach($b['tiles']??[] as $m){
  $id=(int)substr($m['slug'],-2);$q=$pdo->prepare("INSERT OR IGNORE INTO shop_monasteries(id,country_id,slug,status,position)VALUES(?,1,?,'published',?)");$q->execute([$id,$m['slug'],$id]);
- $q=$pdo->prepare("INSERT OR REPLACE INTO shop_monastery_i18n(monastery_id,lang,name,description)VALUES(?,'ru',?,?)");$q->execute([$id,$m['title']['ru'],$m['text']['ru']]);
+ $q=$pdo->prepare("INSERT OR REPLACE INTO shop_monastery_i18n(monastery_id,lang,name,description)VALUES(?,'ru',?,?)");$monasteryName=$m['title']['ru'];if(mb_stripos($monasteryName,'монастыр')===false)$monasteryName='Монастырь '.$monasteryName;$q->execute([$id,$monasteryName,$m['text']['ru']]);
 }
 foreach($catalog as $i=>$wine){
  $q=$pdo->prepare("SELECT id,photo_id FROM elements WHERE type='tile' AND slug=? LIMIT 1");$q->execute([$wine['record_id']]);$t=$q->fetch();
- $q=$pdo->prepare("INSERT OR IGNORE INTO shop_products(monastery_id,sku,slug,beverage_type,color,sweetness,vintage,alcohol_basis_points,volume_ml,price_minor,photo_id,status,available,collectible,position,category)VALUES(?,?,?,'wine',NULL,NULL,?,NULL,NULL,0,?,'published',0,0,?,'wine')");
+ $q=$pdo->prepare("INSERT OR IGNORE INTO shop_products(monastery_id,sku,slug,beverage_type,color,sweetness,vintage,alcohol_basis_points,volume_ml,price_minor,currency,photo_id,status,available,collectible,position,category)VALUES(?,?,?,'wine',?,?,?,NULL,NULL,2000,'GEL',?,'published',1,0,?,'wine')");
  $year=$wine['vintage']??null;$year=is_int($year)?$year:null;
- $q->execute([$wine['monastery_id'],$wine['record_id'],$wine['record_id'],$year,$t['photo_id']??null,$i]);
+ $q->execute([$wine['monastery_id'],$wine['record_id'],$wine['record_id'],$wine['display_color']??null,$wine['display_sweetness']??null,$year,$t['photo_id']??null,$i]);
  $q=$pdo->prepare('SELECT id FROM shop_products WHERE sku=?');$q->execute([$wine['record_id']]);$id=(int)$q->fetchColumn();
+ $pdo->prepare('UPDATE shop_products SET photo_id=? WHERE id=?')->execute([$t['photo_id']??null,$id]);
  $grapes=$wine['grapes']??[];$grapes=is_array($grapes)?implode(', ',$grapes):(string)$grapes;
- $q=$pdo->prepare("INSERT OR REPLACE INTO shop_product_i18n(product_id,lang,name,grape,description)VALUES(?,'ru',?,?,?)");$q->execute([$id,$wine['name'],$grapes,$wine['display_description']]);
+ $q=$pdo->prepare("INSERT OR REPLACE INTO shop_product_i18n(product_id,lang,name,grape,description)VALUES(?,'ru',?,?,?)");$q->execute([$id,mb_substr(str_replace(' (сортовая линия; торговое название уточняется)','',$wine['name']),0,160),$grapes,$wine['display_description']]);
 }
-$pdo->commit();echo "Imported editorial wine references; no prices or sale availability invented\n";
+$pdo->commit();echo "Imported wine references with owner-authorized review price; merchant stock not verified\n";
 }catch(Throwable $e){$pdo->rollBack();throw $e;}

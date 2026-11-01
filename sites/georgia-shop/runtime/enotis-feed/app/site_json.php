@@ -145,6 +145,7 @@ function site_export(): array
             'seo_title'       => (object) ($setI18n['seo_title'] ?? []),
             'seo_description' => (object) ($setI18n['seo_description'] ?? []),
             'currency'        => $set['currency'] ?? 'RUB',
+            'currency_scope'  => 'site',
             'req_format'      => $set['req_format'] ?? 'RU',
             'operator'        => isset($set['operator_id']) && $set['operator_id'] !== '' ? (int) $set['operator_id'] : null,
             'maps'            => $set['maps'] ?? 'google',
@@ -603,6 +604,7 @@ function site_write(array $site, array $opts = []): array
     foreach ($plain as $k => $v) {
         $st->execute([$k, $v]);
     }
+    if (PANEL_NUMBER==='2') $pdo->prepare('UPDATE shop_products SET currency=?')->execute([$plain['currency']]);
     foreach (['site_title', 'seo_title', 'seo_description'] as $k) {
         put_i18n('settings_i18n', ['key' => $k], ['value' => $s[$k] ?? []]);
     }
@@ -637,6 +639,7 @@ function site_write(array $site, array $opts = []): array
     }
     write_blocks($site['blocks'] ?? [], null, $ctx, $used);
     write_domains($site['domains'] ?? [], $ctx);
+    $pdo->prepare('UPDATE sections SET currency=?')->execute([$plain['currency']]);
     return $ids;
 }
 

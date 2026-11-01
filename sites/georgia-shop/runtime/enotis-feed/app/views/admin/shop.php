@@ -39,7 +39,7 @@ $input('country_code','Код страны (GE, FR…)',$val('country_code',$cou
 <?php elseif($key==='color'): $select($key,'Цвет',['red'=>'Красное','white'=>'Белое','rose'=>'Розовое','amber'=>'Янтарное'],$val($key),true); ?>
 <?php elseif($key==='sweetness'): $select($key,'Содержание сахара',['dry'=>'Сухое','semi_dry'=>'Полусухое','semi_sweet'=>'Полусладкое','sweet'=>'Сладкое'],$val($key),true); ?>
 <?php elseif($key==='kind'): $select($key,'Тип',['packaging'=>'Упаковка','extra'=>'Дополнительное оформление'],$val($key,'packaging')); ?>
-<?php elseif($key==='price_minor'): $input('price','Цена, €',isset($row['price'])?$val('price'):shop_decimal_input((int)$val('price_minor','0')),'text',true); ?>
+<?php elseif($key==='price_minor'): $input('price','Цена, '.shop_currency(),isset($row['price'])?$val('price'):shop_decimal_input((int)$val('price_minor','0')),'text',true); ?>
 <?php elseif($key==='alcohol_basis_points'): $input('alcohol','Крепость, %',isset($row['alcohol'])?$val('alcohol'):($val($key)!==''?shop_decimal_input((int)$val($key)):'')); ?>
 <?php else: $input($key,$labels[$key]??$key,$val($key,$key==='position'?'0':''),in_array($key,['position','vintage','volume_ml'],true)?'number':'text',in_array($key,['sku','slug','code'],true)); ?>
 <?php endif ?><?php endforeach ?>

@@ -74,5 +74,5 @@ $cookieDoc = doc('cookies');
 </div>
 <?php endif ?>
 <script src="/assets/js/panel-blocks.js" defer></script>
-</body>
+<script src="/assets/js/shop-details.js?v=20261031" defer></script></body>
 </html>

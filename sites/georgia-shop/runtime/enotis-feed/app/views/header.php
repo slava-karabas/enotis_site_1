@@ -43,6 +43,7 @@ $plain = preg_replace('~^/(' . implode('|', LANGS) . ')(?=/|$)~', '', $here) ?: 
     </nav>
 <?php endif ?>
 <?php if ($burger): ?>
+    <a class="shop-header-cart" href="/cart" aria-label="Корзина"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M2 3h3l2.4 12h11l2-9H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg><span><?=array_sum(array_map('intval',$_SESSION['shop_cart']??[]))?></span></a>
     <details class="menu" data-menu>
       <summary aria-label="<?= e(t('nav.menu')) ?>"><svg class="menu__icon" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M3 5h18M3 12h18M3 19h18"/></svg></summary>
       <nav class="menu__list" aria-label="Навигация по сайту">

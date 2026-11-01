@@ -72,9 +72,12 @@ function migrate(PDO $pdo): void
             if ($version <= $current) {
                 continue;
             }
+            $currencyRebuild = basename($file) === '007_order_currency.sql';
+            if ($currencyRebuild) $pdo->exec('PRAGMA foreign_keys=OFF');
             $pdo->beginTransaction();
             try {
                 $pdo->exec((string) file_get_contents($file));
+                if ($currencyRebuild && $pdo->query('PRAGMA foreign_key_check')->fetch()) throw new RuntimeException('Currency migration reference check failed');
                 $pdo->prepare('INSERT INTO schema_version (version) VALUES (?)')->execute([$version]);
                 $pdo->commit();
             } catch (Throwable $ex) {
@@ -82,6 +85,8 @@ function migrate(PDO $pdo): void
                 $msg = basename($file) . ': ' . $ex->getMessage();
                 error_log('[migrate] ' . $msg);
                 throw new MigrationError($msg, 0, $ex);
+            } finally {
+                if ($currencyRebuild) $pdo->exec('PRAGMA foreign_keys=ON');
             }
         }
     } finally {

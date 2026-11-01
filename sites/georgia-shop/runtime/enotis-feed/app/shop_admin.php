@@ -51,7 +51,8 @@ function shop_decimal(string $value, string $label, int $max): int
     if ($n > $max) { throw new InvalidArgumentException($label.': значение слишком велико.'); }
     return $n;
 }
-function shop_money(int $minor): string { return number_format($minor/100, 2, ',', ' ').' €'; }
+function shop_currency(?string $code = null): string { $code ??= (string)setting('currency','EUR'); return in_array($code,['EUR','GEL','RUB','USD'],true) ? $code : 'EUR'; }
+function shop_money(int $minor, ?string $currency = null): string { $currency=shop_currency($currency);$symbol=['EUR'=>'€','GEL'=>'₾','RUB'=>'₽','USD'=>'$'][$currency];return number_format($minor/100,2,',',' ').' '.$symbol; }
 function shop_decimal_input(int $minor): string { return sprintf('%d.%02d', intdiv($minor,100), $minor%100); }
 function shop_validate(string $type, array $in, string $lang): array
 {
@@ -140,6 +141,7 @@ function shop_save(string $type, array $in, string $lang, int $id): int
         }
         if ($type==='products' && $v['status']==='published' && shop_one('shop_monasteries',$v['monastery_id'])['status']!=='published') { throw new InvalidArgumentException('Сначала опубликуйте монастырь этого вина.'); }
         $base=array_intersect_key($v,array_flip($c[4]));
+        if ($type==='products') $base['currency']=shop_currency();
         if ($id) {
             $st=$pdo->prepare('UPDATE '.$c[1].' SET '.implode(', ',array_map(fn($k)=>$k.'=?',array_keys($base))).' WHERE id=?');
             $st->execute([...array_values($base),$id]);

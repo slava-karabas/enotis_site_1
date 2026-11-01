@@ -36,8 +36,14 @@ const SOCIAL_PATHS = [
     'x' => 'M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z',
 ];
 
-function social_icon(string $network): string
+function social_icon(string $network, bool $branded = false): string
 {
     $d = SOCIAL_PATHS[$network] ?? null;
+    if ($d && $branded) {
+        $fill = ['youtube'=>'#FF0000','telegram'=>'#229ED9','tiktok'=>'#111111','instagram'=>'url(#footer-instagram-gradient)'][$network] ?? 'currentColor';
+        $defs = $network === 'instagram' ? '<defs><linearGradient id="footer-instagram-gradient" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#FCAF45"/><stop offset=".45" stop-color="#E1306C"/><stop offset="1" stop-color="#833AB4"/></linearGradient></defs>' : '';
+        $accents = $network === 'tiktok' ? '<path fill="#25F4EE" transform="translate(-.7,-.4)" d="'.$d.'"/><path fill="#FE2C55" transform="translate(.7,.4)" d="'.$d.'"/>' : '';
+        return '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">'.$defs.$accents.'<path fill="'.$fill.'" d="'.$d.'"/></svg>';
+    }
     return $d ? '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="' . $d . '"/></svg>' : '';
 }

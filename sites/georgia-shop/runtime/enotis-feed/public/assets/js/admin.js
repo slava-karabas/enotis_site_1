@@ -981,7 +981,7 @@
   // Настройки «страны» ленты: у сайта без табов и у каждого таба одинаковые (раздел 3.4).
   function feedFields(f, s) {
     f.appendChild(h('div', { class: 'two' }, [
-      select_(t('field.currency'), [['RUB', 'RUB ₽'], ['GEL', 'GEL ₾'], ['EUR', 'EUR €'], ['USD', 'USD $']], s.currency, function (v) { s.currency = v; changed(); })
+      select_(t('field.currency'), [['RUB', 'RUB ₽'], ['GEL', 'GEL ₾'], ['EUR', 'EUR €'], ['USD', 'USD $']], s.currency, function (v) { s.currency = v; if (S.site.settings.currency_scope === 'site') { S.site.settings.currency = v; (function walk(blocks) { (blocks || []).forEach(function (b) { (b.tabs || []).forEach(function (tab) { tab.currency = v; walk(tab.blocks); }); (b.tiles || []).forEach(function (tile) { walk(tile.blocks); }); }); })(S.site.blocks); } changed(); })
     ]));
     f.appendChild(select_(t('field.operator'), [[null, '—']].concat(S.site.operators.map(function (o) { return [o.id, o.name || '—']; })), s.operator, function (v) {
       s.operator = v === null ? null : (isNaN(+v) ? v : +v); changed();
@@ -1052,7 +1052,7 @@
       f.appendChild(textField(s, 'seo_title', t('field.seo_title'), M.seo_title));
       f.appendChild(textField(s, 'seo_description', t('field.seo_description'), M.seo_description, { area: true, rows: 3 }));
       f.appendChild(section(t('sec.money')));
-      if (tabsBlock()) f.appendChild(h('p', { class: 'hint hint--warn', text: t('hint.main_with_tabs') }));
+      if (tabsBlock() && s.currency_scope !== 'site') f.appendChild(h('p', { class: 'hint hint--warn', text: t('hint.main_with_tabs') }));
       feedFields(f, s);
       f.appendChild(toggle(t('field.cookie_notice'), s.cookie_notice, function (v) { s.cookie_notice = v; changed(); }));
       root.appendChild(f);

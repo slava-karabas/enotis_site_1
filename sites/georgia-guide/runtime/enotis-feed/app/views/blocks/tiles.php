@@ -38,7 +38,7 @@ $sizes = $size === 'large' ? '(min-width: 1440px) 446px, (min-width: 1024px) cal
 <?php endif ?>
         <span class="card__plate">
           <span class="card__text">
-            <span class="card__title"><?= e($placeholder ? 'Информация о винах уточняется' : $t['title']) ?></span>
+            <span class="card__title"><?= $wine && !$placeholder ? '<span class="wine-initial">'.e(mb_substr($t['title'],0,1)).'</span>'.e(mb_substr($t['title'],1)) : e($placeholder ? 'Информация о винах уточняется' : $t['title']) ?></span>
 <?php if ($placeholder): ?>
             <span class="card__sub">Демонстрационное изображение. Это не подтверждённое вино монастыря.</span>
 <?php elseif ($wine): ?>

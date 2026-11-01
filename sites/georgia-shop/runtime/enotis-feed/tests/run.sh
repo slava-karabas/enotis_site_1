@@ -7,6 +7,7 @@ php tests/map-template.php
 php tests/integrations.php
 php tests/gift-constructor.php
 php tests/catalog-photo.php
+php tests/currency.php
 python3 tests/shop-schema.py
 export ENOTIS_DATA=$(mktemp -d)
 export ENOTIS_MAIL_FILE="$ENOTIS_DATA/mail.txt"

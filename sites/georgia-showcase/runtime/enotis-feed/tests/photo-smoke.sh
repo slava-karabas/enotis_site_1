@@ -75,7 +75,7 @@ if grep -q 'SECRET' /tmp/ph-site2.json; then echo "ключ наружу"; exit 
 grep -q '"photo_key_masked":"••••abcd"' /tmp/ph-site2.json
 grep -q '"photo_service":"photoroom"' /tmp/ph-site2.json
 grep -q "\"use_processed\":true,\"pv\":\"$PROC\"" /tmp/ph-site2.json
-# На сайте нарезка идёт из обработанного файла: угол песочный.
+# На сайте нарезка идёт из обработанного файла: угол молочный.
 TH=$(php -r '$j=json_decode(file_get_contents($argv[1]),true); $f=function($x) use (&$f,$argv){ if(is_array($x)){ if(($x["id"]??null)===(int)$argv[2] && isset($x["thumb"])) { echo $x["thumb"]; exit; } foreach($x as $v) $f($v);} }; $f($j["site"]);' /tmp/ph-site2.json "$ID")
 curl -fsS -o /tmp/ph-thumb.jpg "$B$TH"
 php -r '$i=imagecreatefromjpeg($argv[1]); $c=imagecolorat($i,3,3); exit(abs(($c>>16&255)-0xF7)<6 ? 0 : 1);' /tmp/ph-thumb.jpg

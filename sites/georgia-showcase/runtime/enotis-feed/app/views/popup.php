@@ -16,7 +16,7 @@ $hid = 'pp-title-' . $t['id'];
 <?php elseif ($wine): ?>
       <div class="pp__photo frame frame--4x5 frame--wine"><?= view('bottle') ?></div>
 <?php endif ?>
-      <h2 id="<?= $hid ?>"><?= e($t['title']) ?></h2>
+      <h2 id="<?= $hid ?>"><?= $wine ? '<span class="wine-initial">'.e(mb_substr($t['title'],0,1)).'</span>'.e(mb_substr($t['title'],1)) : e($t['title']) ?></h2>
 <?php if ($wine): ?>
       <div class="wine__facts"><?= view('wine_facts', ['t' => $t, 'tag' => 'p']) ?></div>
 <?php elseif ($t['subtitle']): ?>

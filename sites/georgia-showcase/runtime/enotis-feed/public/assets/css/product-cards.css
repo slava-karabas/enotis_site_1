@@ -43,3 +43,9 @@
 }
 
 @media (max-width: 599px) { .hdr__in:has(> .shop-nav) { flex-wrap: wrap; } .hdr .shop-nav { flex: 1 1 200px; min-width: 0; } }
+
+:root{--c-wine-initial:#7B2035}.wine-initial{color:var(--c-wine-initial)}
+
+.bottle-placeholder{width:100%;height:100%;object-fit:contain;padding:8% 0}.product-image:has(>img[src*=henotis-placeholder])>img{padding:8% 0}.frame--wine .bottle-placeholder{background:transparent}
+
+:root{--product-body:340px}.product-card .card__plate{height:var(--product-body);min-height:var(--product-body)}.product-card .card__title{font-size:22px}.product-card .wine__sub,.product-card .wine__type,.product-card .wine__grape,.product-card .wine__year{font-size:15px;line-height:1.5}@media(max-width:599px){:root{--product-body:330px}.product-card .card__title{font-size:18px}.product-card .wine__sub,.product-card .wine__type,.product-card .wine__grape,.product-card .wine__year{font-size:13px}}

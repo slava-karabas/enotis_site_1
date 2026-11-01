@@ -53,7 +53,7 @@ function shop_cart_lines(): array
     }
     return $lines;
 }
-function shop_quote(array $lines): string {return hash('sha256',json_encode($lines,JSON_UNESCAPED_UNICODE));}
+function shop_quote(array $lines): string {return hash('sha256',json_encode(['currency'=>shop_currency(),'lines'=>$lines],JSON_UNESCAPED_UNICODE));}
 function shop_cart_total(array $lines): int {return array_sum(array_map(fn($l)=>$l['price']*$l['quantity'],$lines));}
 function shop_checkout(array $in): string
 {
@@ -80,10 +80,10 @@ function shop_checkout(array $in): string
         if(!hash_equals(shop_quote($lines),shop_scalar($in,'quote')))throw new InvalidArgumentException('Цена или состав изменились. Проверьте обновлённую сумму и отправьте заявку ещё раз.');
         $total=shop_cart_total($lines);if($total>999999999)throw new InvalidArgumentException('Для такого заказа свяжитесь с нами напрямую.');
         $token=bin2hex(random_bytes(24));
-        $pdo->prepare('INSERT INTO shop_orders(public_token,idempotency_key,total_minor,customer_name,customer_contact,greeting,consent_at) VALUES(?,?,?,?,?,?,CURRENT_TIMESTAMP)')->execute([$token,$key,$total,$name,$contact,$comment]);
+        $pdo->prepare('INSERT INTO shop_orders(public_token,idempotency_key,total_minor,customer_name,customer_contact,greeting,currency,consent_at) VALUES(?,?,?,?,?,?,?,CURRENT_TIMESTAMP)')->execute([$token,$key,$total,$name,$contact,$comment,shop_currency()]);
         $id=(int)$pdo->lastInsertId();$st=$pdo->prepare('INSERT INTO shop_order_items(order_id,product_id,option_id,kind,group_key,sku_snapshot,name_snapshot,quantity,unit_price_minor) VALUES(?,?,?,?,?,?,?,?,?)');
         foreach($lines as $l)foreach($l['parts'] as $p){$st->execute([$id,$p['product_id'],$p['option_id'],$p['kind'],$l['key'],$p['sku'],$p['name'],$p['quantity'],$p['price']]);}
-        integration_enqueue('order.created',$id,['name'=>$name,'contact'=>$contact,'comment'=>$comment,'total_minor'=>$total,'currency'=>'EUR','items'=>$lines]);
+        integration_enqueue('order.created',$id,['name'=>$name,'contact'=>$contact,'comment'=>$comment,'total_minor'=>$total,'currency'=>shop_currency(),'items'=>$lines]);
         $pdo->commit();$_SESSION['shop_cart']=[];$_SESSION['shop_last_checkout']=$key;$_SESSION['shop_receipt']=$token;$_SESSION['shop_checkout']=bin2hex(random_bytes(24));return $token;
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
 }
