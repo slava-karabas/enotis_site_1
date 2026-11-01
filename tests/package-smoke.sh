@@ -7,7 +7,7 @@ test ! -e "$W/demo"; test ! -e "$W/docs"; test ! -e "$W/tests"
 ENOTIS_DATA="$W/data" php -S 127.0.0.1:8087 -t "$W/public" "$W/public/index.php" >"$W/server.log" 2>&1 &
 pid=$!; trap 'kill "$pid" 2>/dev/null || true; rm -rf "$W"' EXIT
 sleep 1
-curl -fsS http://127.0.0.1:8087/health | grep -q 'engine=2.0.0 schema=5'
+curl -fsS http://127.0.0.1:8087/health | grep -q 'engine=2.0.1 schema=5'
 J="$W/cookies"; B=http://127.0.0.1:8087
 curl -fsSL -c "$J" "$B/install" > "$W/install.html"
 T=$(grep -o 'name="csrf" value="[^"]*"' "$W/install.html" | head -1 | sed 's/.*value="//;s/"//')

@@ -283,7 +283,7 @@
       if(enabled){f.appendChild(panelInput('Названия уровней через ; (до двух)',b.extension.labels.join('; '),function(v){b.extension.labels=v.split(';').map(function(s){return s.trim();}).filter(Boolean).slice(0,2);}));f.appendChild(panelInput('Название варианта «Все»',b.extension.all||'Все',function(v){b.extension.all=v;}));f.appendChild(h('p',{class:'hint',text:'Значения фильтра задаются в каждой плитке. Фильтр отбирает один список, вкладки переключают разные блоки.'}));}
     } else if(k==='tile'||k==='wine') {
       f.appendChild(section('Значения фильтров'));
-      f.appendChild(panelInput('Значения уровней через ;',(b.extension?.values||[]).join('; '),function(v){b.extension={kind:'values',values:v.split(';').map(function(s){return s.trim();}).slice(0,2)};}));
+      f.appendChild(panelInput('Значения уровней через ;',(b.extension?.values||[]).join('; '),function(v){b.extension=Object.assign({kind:'values'},b.extension||{},{values:v.split(';').map(function(s){return s.trim();}).slice(0,2)});}));
     }
   }
 
@@ -814,7 +814,12 @@
       f.appendChild(textField(tl, 'title', t('field.name'), M.title));
       f.appendChild(textField(tl, 'subtitle', t('field.tile_subtitle'), M.subtitle, { hint: t('hint.tile_subtitle') }));
       var o = opens(tl);
+      f.appendChild(h('p',{class:'hint',text:'Подзаголовок в описании: начните отдельный абзац с ##, например ## Святыни.'}));
       f.appendChild(textField(tl, 'text', t('field.text'), M.text, { area: true, rows: 7, hint: o === 'page' || o === 'static' ? t('hint.text_page') : t('hint.text_popup') }));
+      f.appendChild(section('Источники и авторство фотографий'));
+      var credits=tl.extension&&tl.extension.kind==='sources'?tl.extension:{kind:'sources',author:'',links:[],values:tl.extension?.values||[]};
+      f.appendChild(panelInput('Автор и условия использования',credits.author,function(v){credits.author=v;tl.extension=credits;}));
+      var sourceInput=h('textarea',{rows:4});sourceInput.value=credits.links.join('\n');sourceInput.addEventListener('input',function(){credits.links=sourceInput.value.split('\n').map(function(v){return v.trim();}).filter(Boolean);tl.extension=credits;changed();});f.appendChild(field('Ссылки на источники — по одной в строке',sourceInput));
       f.appendChild(h('p',{class:'hint',text:t('contacts.description')}));
       f.appendChild(section(t('sec.place')));
       f.appendChild(textField(tl, 'place', t('field.place'), M.place));
@@ -841,7 +846,17 @@
       f.appendChild(seoBox(tl, M));
     },
     wine: function (f, tl, M) {
+      var demoWine = tl.extension && tl.extension.kind === 'wine_placeholder';
+      f.appendChild(toggle('Демонстрационная карточка Henotis', demoWine, function (on) {
+        tl.extension = on ? { kind: 'wine_placeholder' } : {};
+        changed(); renderForm();
+      }));
+      if (demoWine) {
+        f.appendChild(h('p', { class: 'hint', text: 'Информация о винах уточняется. Демонстрационное изображение. Это не подтверждённое вино монастыря. Плитка показывает «Название вина» и пять названий полей; плюс открывает подробности. Цена и покупка скрыты.' }));
+        return;
+      }
       f.appendChild(photoField(tl, 'photo', '4:5', true));
+      f.appendChild(h('p',{class:'hint',text:'Утверждённое фото бутылки: 1200×1500, бутылка высотой 1230, молочный фон #F7F5F0. Загрузка и замена выполняются здесь.'}));
       f.appendChild(textField(tl, 'title', t('field.name'), M.title));
       f.appendChild(textField(tl, 'subtitle', t('field.wine_subtitle'), M.subtitle, { hint: t('hint.wine_subtitle') }));
       f.appendChild(h('div', { class: 'two' }, [
@@ -949,9 +964,15 @@
     var n = 0;
     var tb = tabsBlock(), first = tb && !tb.hidden && tb.tabs.filter(function (x) { return !x.hidden; })[0];
     S.site.blocks.concat(first ? first.blocks : []).forEach(function (b) { if (b.type === 'tiles' && !b.hidden && b.kind !== 'wine') b.tiles.forEach(function (tl) { if (!tl.hidden && opens(tl)) n++; }); });
-    var shown = hd.burger === 'on' ? n > 0 : hd.burger === 'off' ? false : n > 6;
+    var shown = hd.burger === 'on' ? true : hd.burger === 'off' ? false : n > 6;
     f.appendChild(seg(t('field.burger'), [['auto', t('burger.auto')], ['on', t('burger.on')], ['off', t('burger.off')]], hd.burger, function (v) { hd.burger = v; changed(); renderForm(); },
-      t(shown ? 'hint.burger_shown' : 'hint.burger_hidden', { n: n })));
+      'Пункты меню: все монастыри, о проекте, соцсети, связь с проектом. Телефон берётся из настроек подвала.'));
+    var ap=S.site.settings.appearance||(S.site.settings.appearance={});
+    f.appendChild(plainField(ap, 'menu_home', 'Меню: главная', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
+    f.appendChild(plainField(ap, 'menu_about', 'Меню: о проекте', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
+    f.appendChild(plainField(ap, 'menu_catalog', 'Меню: каталог', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
+    f.appendChild(plainField(ap, 'menu_social', 'Меню: соцсети', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
+    f.appendChild(plainField(ap, 'menu_contact', 'Меню: связь', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
     root.appendChild(f);
   }
 
@@ -960,8 +981,22 @@
     formHead(root, t('tree.footer'), t('tree.all_pages'));
     root.appendChild(toggle(t('form.show'), ft.show, function (v) { ft.show = v; changed(); }));
     var f = h('div', { class: 'fbody' });
+    var ap=S.site.settings.appearance||(S.site.settings.appearance={});
+    f.appendChild(plainField(ap, 'description', 'Описание проекта в подвале', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
+    f.appendChild(plainField(ap, 'social_heading', 'Заголовок соцсетей', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
+    f.appendChild(plainField(ap, 'contact_heading', 'Заголовок связи', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
+    f.appendChild(plainField(ap, 'copyright', 'Нижняя подпись (год: {year})', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
+    [['social_networks','Соцсети в подвале'],['messenger_networks','Мессенджеры в подвале']].forEach(function(group){
+      f.appendChild(section(group[1]));
+      var labels={youtube:'YouTube',instagram:'Instagram',tiktok:'TikTok',telegram:'Telegram',whatsapp:'WhatsApp',viber:'Viber'};
+      Object.keys(labels).filter(function(network){return group[0]==='messenger_networks'?['whatsapp','viber','telegram'].indexOf(network)!==-1:['youtube','instagram','tiktok','telegram'].indexOf(network)!==-1;}).forEach(function(network){
+        var selected=(ap[group[0]]||'').split(',');
+        f.appendChild(toggle(labels[network],selected.indexOf(network)!==-1,function(on){var values=(ap[group[0]]||'').split(',').filter(Boolean).filter(function(v){return v!==network;});if(on)values.push(network);ap[group[0]]=values.join(',');changed();}));
+      });
+    });
     f.appendChild(plainField(ft, 'email', t('field.email'), { type: 'email' }));
     f.appendChild(plainField(ft, 'phone', t('field.phone'), { type: 'tel', placeholder: '+995 …' }));
+    f.appendChild(plainField(ft, 'telegram', 'Telegram — личная связь', { type: 'url', placeholder: 'https://t.me/username' }));
     f.appendChild(h('p', { class: 'hint' }, [t('hint.footer_more') + ' ', h('button', { type: 'button', class: 'linkbtn', text: t('set.social'), onclick: function () { select('set:social'); } }), ', ',
       h('button', { type: 'button', class: 'linkbtn', text: t('set.operators'), onclick: function () { select('set:operators'); } }), ', ',
       h('button', { type: 'button', class: 'linkbtn', text: t('set.docs'), onclick: function () { select('set:docs'); } })]));
@@ -1045,7 +1080,9 @@
       if (tabsBlock()) f.appendChild(h('p', { class: 'hint hint--warn', text: t('hint.main_with_tabs') }));
       feedFields(f, s);
       f.appendChild(toggle(t('field.cookie_notice'), s.cookie_notice, function (v) { s.cookie_notice = v; changed(); }));
-      root.appendChild(f);
+      var ap=S.site.settings.appearance||(S.site.settings.appearance={});
+    [['catalog_title','Заголовок каталога'],['catalog_description','Описание каталога'],['catalog_filter','Подпись фильтра каталога']].forEach(function(it){f.appendChild(plainField(ap,it[0],it[1],{}));});
+    root.appendChild(f);
     },
     langs: function (root) {
       var L = S.site.languages;
@@ -1306,6 +1343,7 @@
     var s = S.site.settings;
     formHead(root, t('set.design'), t('tree.settings'));
     var f = h('div', { class: 'fbody' });
+    f.appendChild(toggle('Показывать продукцию на страницах',s.show_products!==false,function(v){s.show_products=v;changed();}));
     f.appendChild(brandBox('logo', t('brand.logo'), t('hint.logo'), 'brand__img--logo'));
     if (s.logo) f.appendChild(toggle(t('brand.with_title'), s.logo.with_title !== false, function (v) { s.logo.with_title = v; changed(); }));
     f.appendChild(brandBox('favicon', t('brand.favicon'), s.favicon ? t('hint.favicon') : t('hint.favicon_none'), 'brand__img--icon'));

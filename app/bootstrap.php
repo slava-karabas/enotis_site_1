@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-const ENGINE_VERSION = '2.0.0';
+const ENGINE_VERSION = '2.0.1';
 const ENGINE_PRODUCT = 'enotis-feed-free-v2';
 const PANEL_NUMBER = '1';
 const PANEL_PAYMENTS = false;
@@ -20,7 +20,9 @@ require APP_DIR . '/install.php';
 require APP_DIR . '/brand.php';
 require APP_DIR . '/mail.php';
 require APP_DIR . '/content.php';
+require APP_DIR . '/wine_card.php';
 require APP_DIR . '/social.php';
+require APP_DIR . '/presentation.php';
 require APP_DIR . '/seo.php';
 require APP_DIR . '/no_pay.php';
 require APP_DIR . '/site_json.php';

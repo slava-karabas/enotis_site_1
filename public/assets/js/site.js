@@ -13,7 +13,7 @@
     window.addEventListener('scroll', function () {
       var y = window.scrollY;
       var phone = window.innerWidth < 600;
-      header.classList.toggle('is-hidden', phone && y > 80 && y > lastY);
+      header.classList.remove('is-hidden');
       lastY = y;
     }, { passive: true });
   }
@@ -21,6 +21,10 @@
   document.addEventListener('click', function (e) {
     var menu = $('[data-menu]');
     if (menu && (e.target.closest('[data-menu] a') || !menu.contains(e.target))) menu.open = false;
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { var m = $('[data-menu]'); if(m && m.open) { m.open=false; $('summary',m).focus(); } }
   });
 
   /* ---------- Окна: ловят фокус, закрываются Esc и по затемнению ---------- */

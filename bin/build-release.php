@@ -29,7 +29,7 @@ foreach(['app','public/assets','bin'] as $dir){
     $it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator("$root/$dir",FilesystemIterator::SKIP_DOTS));
     foreach($it as $f)if($f->isFile()&&!$f->isLink()&&preg_match('/\.(php|sql|json|js|css|svg|png|jpg|jpeg|webp|woff2?|ttf|map|txt)$/i',$f->getFilename()))$files[]=substr($f->getPathname(),strlen($root)+1);
 }
-foreach(['.htaccess','public/index.php','public/uploads/.htaccess','data/.htaccess'] as $f)if(is_file("$root/$f"))$files[]=$f;
+foreach(['.user.ini','.htaccess','public/index.php','public/uploads/.htaccess','data/.htaccess'] as $f)if(is_file("$root/$f"))$files[]=$f;
 sort($files);
 
 $zipFile = "$out/enotis-admin-1-$version.zip";

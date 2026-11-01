@@ -5,6 +5,21 @@ function panel_extension(mixed $v, string $type='text'): array {
     if($v===null||$v===[])return [];
     if(!is_array($v)||strlen(json_encode($v))>32000)throw new InvalidArgumentException('Некорректная настройка блока');
     $kind=$v['kind']??'';
+    if($kind==='sources'){
+        if($type!=='tile')throw new InvalidArgumentException('Источники допустимы у страницы');
+        $author=trim((string)($v['author']??''));if(mb_strlen($author)>1000)throw new InvalidArgumentException('Подпись слишком длинная');
+        $links=$v['links']??[];if(!is_array($links)||count($links)>30)throw new InvalidArgumentException('Слишком много ссылок');
+        foreach($links as $link)if(!is_string($link)||mb_strlen($link)>2000||!preg_match('~^https://[^\s]+$~uD',$link))throw new InvalidArgumentException('Нужна HTTPS ссылка');
+        $out=['kind'=>'sources','author'=>$author,'links'=>array_values($links)];if(isset($v['values']))$out['values']=panel_filter_values($v['values']);return $out;
+    }
+    if($kind==='wine_reference'){
+        if($type!=='tile')throw new InvalidArgumentException('Сведения о вине допустимы только у карточки');
+        $source=trim((string)($v['source']??''));
+        if($source!=='' && (!filter_var($source,FILTER_VALIDATE_URL) || !in_array(parse_url($source,PHP_URL_SCHEME),['https','http'],true)))throw new InvalidArgumentException('Некорректный источник вина');
+        $out=['kind'=>'wine_reference','source'=>$source,'photo_verified'=>!empty($v['photo_verified']),'sku'=>substr(preg_replace('/[^a-zA-Z0-9_-]/','',(string)($v['sku']??'')),0,100)];if(isset($v['values']))$out['values']=panel_filter_values($v['values']);return $out;
+    }
+
+    if($kind==='wine_placeholder'){if($type!=='tile')throw new InvalidArgumentException('Заглушка допустима только у карточки');return ['kind'=>'wine_placeholder'];}
     if($kind==='contacts'){if($type!=='text')throw new InvalidArgumentException('Контакты должны быть отдельным блоком');return panel_contacts_config($v);}
     if(!in_array($kind,['products','gift','filters','values'],true)||PANEL_NUMBER!=='2'&&in_array($kind,['products','gift'],true))throw new InvalidArgumentException('Этот блок недоступен');
     $out=['kind'=>$kind];
@@ -48,4 +63,10 @@ function panel_custom_gift_line(array $spec,int $qty): array {
     foreach(['box'=>'box_minor','card'=>'card_minor'] as $key=>$priceKey)if(!empty($spec[$key])){$price=(int)($cfg[$priceKey]??0);$sum+=$price;$parts[]=['product_id'=>null,'option_id'=>null,'kind'=>$key==='box'?'packaging':'extra','sku'=>'','name'=>$key==='box'?'Подарочная коробка':'Открытка','quantity'=>$qty,'price'=>$price];}
     if($sum>999999999)throw new InvalidArgumentException('Сумма набора слишком большая');
     return ['key'=>'c:'.hash('sha256',json_encode($spec)),'name'=>'Подарочный набор','quantity'=>$qty,'price'=>$sum,'parts'=>$parts];
+}
+
+function panel_filter_values(mixed $values): array {
+ if(!is_array($values)||count($values)>2)throw new InvalidArgumentException('Нужно не более двух значений фильтра');
+ foreach($values as $value)if(!is_string($value)||mb_strlen($value)>80)throw new InvalidArgumentException('Некорректное значение фильтра');
+ return array_values(array_map('trim',$values));
 }

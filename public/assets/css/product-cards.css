@@ -20,7 +20,7 @@
   .catalog-layout .cards.product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 .product-card.product-card { width: 100%; min-width: 0; display: flex; flex-direction: column; border: 0; border-radius: var(--radius, 8px); overflow: hidden; background: var(--c-paper, #FBF8F4); color: var(--c-ink, #2B2624); }
-.product-card .product-image { display: flex; position: relative; align-items: center; justify-content: center; width: 100%; height: auto; min-height: 0; flex: none; aspect-ratio: 4 / 5; overflow: hidden; background: var(--c-wine-bg, #EAE0D2); text-decoration: none; }
+.product-card .product-image { display: flex; position: relative; align-items: center; justify-content: center; width: 100%; height: auto; min-height: 0; flex: none; aspect-ratio: 4 / 5; overflow: hidden; background: var(--c-wine-bg, #F7F5F0); text-decoration: none; }
 .product-card .product-image img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .product-card .card-content, .product-card .card__plate { position: relative; box-sizing: border-box; height: var(--product-body); min-height: var(--product-body); padding: 16px 18px 18px; display: flex; flex: none; flex-direction: column; gap: 4px; overflow: hidden; }
 .product-card .card__text { width: 100%; min-width: 0; overflow: hidden; }
@@ -43,3 +43,40 @@
 }
 
 @media (max-width: 599px) { .hdr__in:has(> .shop-nav) { flex-wrap: wrap; } .hdr .shop-nav { flex: 1 1 200px; min-width: 0; } }
+
+:root{--c-wine-initial:#7B2035}.wine-initial{color:var(--c-wine-initial)}
+
+.bottle-placeholder{width:100%;height:100%;object-fit:contain;padding:8% 0}.product-image:has(>img[src*=henotis-placeholder])>img{padding:8% 0}.frame--wine .bottle-placeholder{background:transparent}
+
+:root{--product-body:340px}.product-card .card__plate{height:var(--product-body);min-height:var(--product-body)}.product-card .card__title{font-size:22px}.product-card .wine__sub,.product-card .wine__type,.product-card .wine__grape,.product-card .wine__year{font-size:15px;line-height:1.5}@media(max-width:599px){:root{--product-body:330px}.product-card .card__title{font-size:18px}.product-card .wine__sub,.product-card .wine__type,.product-card .wine__grape,.product-card .wine__year{font-size:13px}}
+
+/* One approved image stage in catalogues, monastery cards and details. */
+.product-card .product-image,.frame--wine,.shop-detail-image,.detail-image:has(.wine-photo-normalized){box-sizing:border-box;position:relative;display:block;width:100%;height:auto;min-height:0;aspect-ratio:4/5;padding:0;background:#F7F5F0;overflow:hidden}
+.product-image img.wine-photo-normalized,.frame--wine img.wine-photo-normalized,.detail-image img.wine-photo-normalized{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;object-fit:contain;mix-blend-mode:normal;transform:none;filter:none}
+.wine-photo-note{display:none}
+
+/* Typography approved from the Bolnisi reference: Playfair Display Medium. */
+h1,h2,h3,.card__title,.hdr__title,.pp__name,.country-group__title{font-family:var(--font-head);font-weight:500}
+.card--wine .card__title,.product-card .card__title,.product-card h2,.product-card h3,.pp--wine h2,.shop-detail-text h2,.detail h1{font-family:var(--font-head);font-weight:500;font-synthesis:none}
+.wine-initial{font-family:inherit;font-weight:inherit}
+
+/* Single card typography: docs/wine-card-standard.md, owner-approved. */
+.product-card .wine-card-title,.pp--wine .wine-card-title,.shop-detail-text .wine-card-title,.detail .wine-card-title{font:600 24px/1.2 Arial,Helvetica,sans-serif;color:#2B2624;letter-spacing:normal;text-transform:none;font-synthesis:none;margin:0 0 12px;min-height:2.4em;display:block;overflow-wrap:anywhere}
+.wine-card-title a{font:inherit;color:inherit;text-decoration:none}.wine-card-title .wine-initial{color:#7B2035;font:inherit}
+.wine-card-facts{display:block}.wine-card-fact{display:block;margin:0;font:400 14px/1.5 Arial,Helvetica,sans-serif;color:#6D6460;letter-spacing:normal;text-transform:none;overflow-wrap:anywhere;font-variant-numeric:lining-nums tabular-nums}
+.wine-card-note{display:block;margin-top:12px;font:400 12px/1.5 Arial,Helvetica,sans-serif;color:#6D6460}
+.product-card{font-family:Arial,Helvetica,sans-serif;font-variant-numeric:lining-nums tabular-nums}.product-card .card__text{overflow:visible}.product-card .card__plate{height:auto;min-height:340px}.product-card .card-content{min-height:340px}
+@media(max-width:599px){.product-card .wine-card-title,.pp--wine .wine-card-title,.shop-detail-text .wine-card-title,.detail .wine-card-title{font-size:22px}.wine-card-fact{font-size:13px}.product-card .card__plate,.product-card .card-content{min-height:340px}}
+
+.product-card .card-content,.product-card .card__plate{flex:1 1 auto}.tiles--wine .grid>li{display:flex;min-width:0}.tiles--wine .grid>li>.product-card{height:100%}.product-card .price,.product-card .button,.product-card .shop-more,.pp--wine,.shop-detail-text,.detail:has(.wine-card-title){font-family:Arial,Helvetica,sans-serif}
+
+/* Approved original-colors.html, 2026-11-01. */
+.product-card.product-card{border:1px solid #E5DCD2;border-radius:14px;background:#FBF8F4}
+.product-card .product-image{background:#F7F5F0}
+.product-card .card-content,.product-card .card__plate{border-top:1px solid #E5DCD2;border-radius:14px 14px 0 0;background:#FBF8F4;padding:22px 22px 20px;min-height:330px;height:auto;overflow:visible;gap:0}
+.product-card .wine-card-title,.pp--wine .wine-card-title,.shop-detail-text .wine-card-title,.detail .wine-card-title{font:500 24px/1.2 "Playfair Display",serif;min-height:0;margin:0 0 12px;display:block;font-synthesis:none;-webkit-line-clamp:unset}
+.wine-card-fact{font:400 16px/1.55 "Golos Text",Arial,sans-serif;color:#2B2624;margin:0}
+.product-card .price{font:500 21px/1.3 "Golos Text",Arial,sans-serif}
+.product-card .card__icon,.shop-more{width:36px;height:36px;display:grid;place-items:center;border:1px solid #7B2035;border-radius:50%;color:#7B2035;background:transparent;font:24px/1 Arial}
+.shop-card-actions{padding-top:24px;margin-top:auto}.shop-price-row{margin-bottom:14px}.product-card .button{min-height:44px;border-radius:99px;font:400 15px/1.3 "Golos Text",Arial,sans-serif}
+@media(max-width:599px){.product-card .card-content,.product-card .card__plate{padding:16px 12px;min-height:330px}.product-card .wine-card-title,.pp--wine .wine-card-title,.shop-detail-text .wine-card-title,.detail .wine-card-title{font-size:22px}.wine-card-fact{font-size:13px}}

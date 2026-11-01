@@ -6,9 +6,9 @@ if (!$GLOBALS['h1_done'] && $b['title']) {
 }
 $size = $b['title_size'] ?: 'm';
 $body = $b['body_size'] ?: 'normal';
-$intro = $b['eyebrow'] && $size === 'l';
+$intro = $tag === 'h1' || ($b['eyebrow'] && $size === 'l');
 ?>
-<section class="wrap blk text text--<?= e($body) ?><?= $intro ? ' text--intro' : '' ?>"<?= eid($b['id']) ?><?php if (!empty($b['_page_anchor'])): ?> id="block-<?= (int)$b['id'] ?>"<?php endif ?>>
+<section id="<?= $tag === 'h1' ? 'about' : 'block-'.(int)$b['id'] ?>" class="wrap blk text text--<?= e($body) ?><?= $intro ? ' text--intro' : '' ?>"<?= eid($b['id']) ?>>
 <?php if ($b['eyebrow']): ?>
   <p class="eyebrow"><?= e($b['eyebrow']) ?></p>
 <?php endif ?>

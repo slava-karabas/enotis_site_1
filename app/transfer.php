@@ -134,6 +134,7 @@ function structure_only(array $site): array
     $site['social'] = [];
     $site['footer']['email'] = '';
     $site['footer']['phone'] = '';
+    $site['footer']['telegram'] = '';
     foreach ($site['docs'] as $k => $d) {
         $site['docs'][$k] = ['show' => false, 'title' => (object) [], 'body' => (object) []];
     }
@@ -171,6 +172,10 @@ function structure_blocks(array $blocks): array
 
 function strip_texts(array $n): array
 {
+    if (isset($n['extension']['kind'])) {
+        if ($n['extension']['kind'] === 'contacts') $n['extension']['items'] = [];
+        if ($n['extension']['kind'] === 'wine_reference') $n['extension'] = ['kind' => 'wine_placeholder'];
+    }
     foreach (TEXT_KEYS as $k) {
         if (array_key_exists($k, $n)) {
             $n[$k] = (object) [];

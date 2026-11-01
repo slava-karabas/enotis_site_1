@@ -18,7 +18,7 @@
   --c-mute:         #6D6460;
 
   /* Вино: только зона фото в карточке и поп-апе вина */
-  --c-wine-bg:      #EAE0D2;
+  --c-wine-bg:      #F7F5F0;
 
   /* Фокус: бутылочная рамка + мягкий ореол */
   --focus-ring:     0 0 0 2px var(--c-nav), 0 0 0 5px var(--c-nav-soft);
@@ -48,7 +48,7 @@
 @media (min-width: 600px) { :root { --gutter: 28px; --blk-gap: 64px; } }
 
 body { margin: 0; background: var(--c-bg); color: var(--c-ink); font-family: var(--font-body); line-height: 1.5; }
-h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.2; }
+h1, h2, h3 { font-family: var(--font-head); font-weight: 500; line-height: 1.2; }
 h1::first-letter, h2::first-letter { color: var(--c-action); }
 a { color: inherit; }
 :focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 4px; }

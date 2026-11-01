@@ -48,10 +48,10 @@ $cookieDoc = doc('cookies');
 
 <?php if (current_lang() === 'ka'): ?>
   <link rel="preload" href="/assets/fonts/noto-sans-georgian-400.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/noto-serif-georgian-600.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/noto-serif-georgian-500.woff2" as="font" type="font/woff2" crossorigin>
 <?php else: $fontSubset = current_lang() === 'ru' ? 'cyrillic' : 'latin'; ?>
   <link rel="preload" href="/assets/fonts/golos-400-<?= $fontSubset ?>.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/assets/fonts/playfair-600-<?= $fontSubset ?>.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/playfair-500-<?= $fontSubset ?>.woff2" as="font" type="font/woff2" crossorigin>
 <?php endif ?>
   <link rel="stylesheet" href="/assets/fonts/fonts.css?v=<?= e(asset_version('/assets/fonts/fonts.css')) ?>">
   <link rel="stylesheet" href="/assets/css/theme.css?v=<?= e(asset_version('/assets/css/theme.css')) ?>">

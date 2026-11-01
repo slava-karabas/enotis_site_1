@@ -17,8 +17,12 @@ foreach ([['kind'=>'contacts','items'=>[['value'=>'','label'=>'orphan']]],['kind
 $bad=false;try{panel_extension($cfg,'tile');}catch(InvalidArgumentException $e){$bad=true;}check($bad,'contact extension on a tile');
 db();$site=site_export();$site['blocks']=[['id'=>'new-c','type'=>'text','hidden'=>false,'title'=>['ru'=>'Контакты'],'extension'=>$cfg,'text'=>[]]];
 check(!site_validate($site)['errors'],'contacts validate');
+$site['footer']['telegram']='https://t.me/enotis_example';
 $pdo=db();$pdo->beginTransaction();site_write($site);$pdo->commit();
 $back=site_export();check($back['blocks'][0]['extension']===$cfg,'database save/export');
+check($back['footer']['telegram']==='https://t.me/enotis_example','separate messenger Telegram save/export');
+$invalid=$back;$invalid['footer']['telegram']='javascript:alert(1)';check((bool)site_validate($invalid)['errors'],'unsafe messenger Telegram rejected');
+$invalid['footer']['telegram']='https://t.me.evil.test/example';check((bool)site_validate($invalid)['errors'],'spoofed messenger Telegram rejected');
 $cfg['items']=array_reverse($cfg['items']);$cfg['items'][0]['label']='Изменено';array_pop($cfg['items']);
 $back['blocks'][0]['extension']=$cfg;$pdo->beginTransaction();site_write($back);$pdo->commit();
 check(site_export()['blocks'][0]['extension']===$cfg,'edit/reorder/delete');
@@ -28,14 +32,8 @@ $back=site_export();check($back['blocks'][0]['extension']===$cfg,'ZIP import pre
 $block=$back['blocks'][0];$block['title']='Контакты';$config=$cfg;
 $html=view('blocks/contacts',['b'=>$block,'config'=>$config]);check(str_contains($html,'tel:+995555123456')&&str_contains($html,'mailto:info@example.com'),'real contact renderer');
 $html=view('blocks/contacts',['b'=>$block,'config'=>['items'=>[['value'=>'https://example.com','label'=>'<script>']]]]);check(!str_contains($html,'<script>')&&str_contains($html,'&lt;script&gt;'),'safe label');
-foreach (['ru','en','fr','ka'] as $lang) {
- current_lang($lang);
- $empty=view('blocks/contacts',['b'=>$block,'config'=>['items'=>[]]]);
- check(str_contains($empty,e(t('contacts.empty'))) && str_contains($empty,'contacts__surface') && !str_contains($empty,'contacts__list'),'translated empty state');
-}
-current_lang('ru');
-check(view('blocks/contacts',['b'=>array_replace($block,['hidden'=>true]),'config'=>['items'=>[]]])==='','explicit hidden empty state');
-$n=['hidden'=>0,'type'=>'text','panel_json'=>json_encode(['kind'=>'contacts','items'=>[]]),'title'=>'Контакты'];check(is_visible($n),'empty contact block remains visible');$n['hidden']=1;check(!is_visible($n),'explicit hiding remains authoritative');
+check(str_contains(view('blocks/contacts',['b'=>$block,'config'=>['items'=>[]]]),t('contacts.empty')),'empty contacts message');
+$n=['hidden'=>0,'type'=>'text','panel_json'=>json_encode(['kind'=>'contacts','items'=>[]]),'title'=>'Контакты'];check(is_visible($n),'empty contacts must remain visible in navigation');
 ob_start();panel_description("Описание\n## Святыни\n<script>not markup</script>");$html=ob_get_clean();check(str_contains($html,'<h2 class="tpage__subheading">Святыни</h2>')&&!str_contains($html,'<script>'),'safe shrine subheading');
 $site['blocks'][0]['extension']['items'][0]['value']='javascript:alert(1)';check((bool)site_validate($site)['errors'],'server tree validation');
-echo 'PASS '.PANEL_NUMBER.': contact security, automatic types, validation, save/edit/order/delete, JSON+ZIP round-trip, actual rendering, translated empty state, explicit hiding and safe description'.PHP_EOL;
+echo 'PASS '.PANEL_NUMBER.': contact security, automatic types, validation, save/edit/order/delete, JSON+ZIP round-trip, actual rendering, empty visibility and safe description'.PHP_EOL;

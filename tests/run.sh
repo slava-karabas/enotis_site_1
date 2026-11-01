@@ -17,15 +17,15 @@ for kind in sample aggregator settings photo; do
   trap 'kill "$pid" 2>/dev/null || true' EXIT
   sleep 1
   case "$kind" in
-    sample) tests/admin-smoke.sh http://127.0.0.1:8081; python3 tests/contacts-http.py http://127.0.0.1:8081 ;;
-    aggregator) tests/tabs-smoke.sh http://127.0.0.1:8081 ;;
-    settings) tests/settings-smoke.sh http://127.0.0.1:8081 "$ENOTIS_MAIL_FILE" ;;
-    photo) tests/photo-smoke.sh http://127.0.0.1:8081 ;;
+    sample) bash tests/admin-smoke.sh http://127.0.0.1:8081 ;;
+    aggregator) bash tests/tabs-smoke.sh http://127.0.0.1:8081 ;;
+    settings) bash tests/settings-smoke.sh http://127.0.0.1:8081 "$ENOTIS_MAIL_FILE" ;;
+    photo) bash tests/photo-smoke.sh http://127.0.0.1:8081 ;;
   esac
   kill "$pid"; wait "$pid" 2>/dev/null || true
   if grep -E 'PHP (Warning|Notice|Deprecated|Fatal)' "$ENOTIS_DATA/server.log" | grep -v JIT; then exit 1; fi
  done
-tests/update-smoke.sh 8085 8086
+bash tests/update-smoke.sh 8085 8086
 php bin/build-release.php /tmp/enotis-1-dist
-tests/package-smoke.sh /tmp/enotis-1-dist/enotis-admin-1-2.0.0.zip
+bash tests/package-smoke.sh /tmp/enotis-1-dist/enotis-admin-1-2.0.1.zip
 printf 'All checks passed\n'

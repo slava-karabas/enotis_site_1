@@ -246,8 +246,8 @@ function is_visible(array $n): bool
     if ((int) $n['hidden'] === 1) {
         return false;
     }
-    $extension = panel_block_extension($n);
-    if (($extension['kind'] ?? '') === 'contacts') return true;
+    $extension=panel_block_extension($n);
+    if(($extension['kind']??'')==='contacts') return true;
     return match ($n['type']) {
         'text'           => $n['eyebrow'] || $n['title'] || $n['subtitle'] || $n['body'],
         'tile'           => (bool) $n['title'],
@@ -299,6 +299,8 @@ function is_wine(array $tile): bool
 /** Как открывается плитка (раздел 3.2): 'page', 'popup' или null (не нажимается). */
 function tile_opens(array $tile): ?string
 {
+    // Demo cards must never resolve to a product popup or page.
+    if ((panel_block_extension($tile)['kind'] ?? '') === 'wine_placeholder') return 'popup';
     if (!is_wine($tile) && tile_level($tile) === 1) {
         // Раздел 3.2: блоки внутри плитки делают её страницей; скрытые и непереведённые не считаются.
         if (visible_children($tile) || (int) $tile['as_page'] === 1) {

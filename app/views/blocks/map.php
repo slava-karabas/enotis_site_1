@@ -1,9 +1,9 @@
 <?php
 $points = [];
-$mapId = $mapId ?? 'map-block-' . (int) $b['id'];
+$mapId = 'map-block-' . (int) $b['id'];
 $service = feed_setting('maps', 'google');
-foreach ($mapPlaces ?? map_points($b) as $t) {
-    $opens = isset($mapPlaces) ? null : tile_opens($t);
+foreach (($mapTiles ?? map_points($b)) as $t) {
+    $opens = !empty($mapSelf) ? null : tile_opens($t);
     $lat = (float) $t['lat'];
     $lng = (float) $t['lng'];
     $points[] = [
@@ -16,14 +16,13 @@ foreach ($mapPlaces ?? map_points($b) as $t) {
     ];
 }
 ?>
-<section class="wrap blk map"<?= eid($b['id']) ?><?php if (!empty($b['_page_anchor'])): ?> id="block-<?= (int)$b['id'] ?>"<?php endif ?>>
+<section class="wrap blk map"<?= eid($b['id']) ?>>
   <div class="map__head">
 <?php if ($b['title']): ?>
     <h2 class="map__h"><?= e($b['title']) ?></h2>
 <?php endif ?>
     <button type="button" class="map__expand" data-map-expand aria-controls="<?= e($mapId) ?>" aria-expanded="false" hidden><?= e(t('map.expand')) ?></button>
   </div>
-<?php if (!empty($mapAddress)): ?><p class="map__address"><?= e($mapAddress) ?></p><?php endif ?>
   <div id="<?= e($mapId) ?>" class="map__box" data-map data-title="<?= e($b['title'] ?: t('map.title')) ?>" data-close="<?= e(t('map.collapse')) ?>" data-more="<?= e(t('map.more')) ?>" data-route-label="<?= e(t('map.route')) ?>" data-attr="<?= e(t('map.attribution')) ?>" data-points="<?= e(json_encode($points, JSON_UNESCAPED_UNICODE)) ?>">
     <ul class="map__list">
 <?php foreach ($points as $p): ?>

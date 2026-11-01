@@ -10,7 +10,7 @@ declare(strict_types=1);
  * site_write()    — дерево → база; вызывается внутри транзакции.
  */
 
-const RESERVED_SLUGS = ['admin', 'assets', 'uploads', 'doc', 'install', 'sitemap.xml', 'robots.txt', 'ru', 'ka', 'en', 'fr'];
+const RESERVED_SLUGS = ['catalog','sources','all','cart','wine','order','gift','gifts','monastery','admin', 'assets', 'uploads', 'doc', 'install', 'sitemap.xml', 'robots.txt', 'ru', 'ka', 'en', 'fr'];
 
 /** Предельная длина полей по виду элемента (разделы 5.2–5.8, 10.5). */
 const FIELD_MAX = [
@@ -123,6 +123,8 @@ function site_export(): array
         'engine'    => ENGINE_VERSION,
         'languages' => ['main' => $main, 'on' => $on],
         'settings'  => [
+            'appearance'      => presentation_settings(),
+            'show_products'   => setting('show_products','1')==='1',
             'site_title'      => (object) ($setI18n['site_title'] ?? []),
             'seo_title'       => (object) ($setI18n['seo_title'] ?? []),
             'seo_description' => (object) ($setI18n['seo_description'] ?? []),
@@ -138,7 +140,7 @@ function site_export(): array
         ],
         'header'    => ['show' => ($set['header_show'] ?? '1') === '1', 'burger' => $set['header_burger'] ?? 'auto'],
         'footer'    => ['show' => ($set['footer_show'] ?? '1') === '1', 'email' => (string) ($set['footer_email'] ?? ''),
-                        'phone' => (string) ($set['footer_phone'] ?? '')],
+                        'phone' => (string) ($set['footer_phone'] ?? ''), 'telegram' => (string) ($set['footer_telegram'] ?? '')],
         'social'    => $social,
         'operators' => $operators,
         'domains'   => $domains,
@@ -255,6 +257,10 @@ function site_validate(array $site): array
     check_lengths('settings', 'settings', $site['settings'] ?? [], $ctx);
     if (!in_array($main, $on, true)) {
         $errors[] = ['id' => 'languages', 'code' => 'err.main_lang_off'];
+    }
+    $telegram = trim((string) ($site['footer']['telegram'] ?? ''));
+    if ($telegram !== '' && (!link_ok($telegram, false) || !preg_match('~^https://(?:t\.me|telegram\.me)/[A-Za-z0-9_]+/?$~D', $telegram))) {
+        $errors[] = ['id'=>'footer', 'field'=>'telegram', 'code'=>'err.https'];
     }
     foreach ($site['social'] ?? [] as $s) {
         $u = trim((string) ($s['url'] ?? ''));
@@ -458,7 +464,7 @@ function site_write(array $site, array $opts = []): array
     if (($site['format'] ?? null) !== 3) {
         throw new InvalidArgumentException('Нужен JSON формата 3');
     }
-    if (payment_data_present($site)) throw new InvalidArgumentException('Payments are unavailable in Admin 1.2');
+    if (payment_data_present($site)) throw new InvalidArgumentException('Payments are unavailable in Admin 1');
     $pdo = db();
     $max = (int) $pdo->query('SELECT COALESCE(MAX(id), 0) FROM elements')->fetchColumn();
     $max = max($max, max_tree_id($site['blocks'] ?? []));
@@ -509,9 +515,12 @@ function site_write(array $site, array $opts = []): array
         'operator_id'   => $opId !== null ? (string) $opId : null,
         'header_show'   => ($site['header']['show'] ?? true) ? '1' : '0',
         'header_burger' => in_array($site['header']['burger'] ?? '', ['auto', 'on', 'off'], true) ? $site['header']['burger'] : 'auto',
+        'show_products' => ($s['show_products']??true)?'1':'0',
+        'presentation'  => json_encode(array_intersect_key($s['appearance'] ?? [], PRESENTATION_DEFAULTS), JSON_UNESCAPED_UNICODE),
         'footer_show'   => ($site['footer']['show'] ?? true) ? '1' : '0',
         'footer_email'  => nn($site['footer']['email'] ?? null),
         'footer_phone'  => nn($site['footer']['phone'] ?? null),
+        'footer_telegram' => nn($site['footer']['telegram'] ?? null),
         // Оформление (раздел 10.5): только свои файлы из public/uploads/brand.
         'logo_path'       => brand_path($s['logo']['url'] ?? null),
         'logo_with_title' => ($s['logo']['with_title'] ?? true) ? '1' : '0',
