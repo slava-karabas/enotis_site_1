@@ -11,7 +11,9 @@ $hid = 'pp-title-' . $t['id'];
       <a class="pp__x" href="<?= e($pageUrl) ?>" data-close aria-label="<?= e(t('popup.close')) ?>">×</a>
     </div>
     <div class="pp__body"<?= eid($t['id']) ?>>
-<?php if ($t['photo']): ?>
+<?php if ($wine): ?>
+      <div class="pp__photo frame frame--4x5 frame--wine"><?=view('wine_image',['wine_slug'=>$t['slug']??'','wine_alt'=>$t['title'],'wine_eager'=>$isOpen])?></div>
+<?php elseif ($t['photo']): ?>
       <div class="pp__photo frame frame--<?= $frame ?><?= $wine ? ' frame--wine' : '' ?>"><?= photo_img($t['photo'], $t['title'], !$isOpen, false, '(min-width: 700px) 640px, 100vw') ?></div>
 <?php elseif ($wine): ?>
       <div class="pp__photo frame frame--4x5 frame--wine"><?= view('bottle') ?></div>

@@ -28,12 +28,10 @@ $sizes = $size === 'large' ? '(min-width: 1440px) 446px, (min-width: 1024px) cal
 ?>
     <li data-wine-node="<?= (int)$t['id'] ?>"<?= eid($t['id']) ?> data-filter-values="<?=e(json_encode(panel_block_extension($t)['values']??[]))?>">
       <<?= $tag ?> class="card<?= $wine ? ' card--wine product-card' : '' ?>"<?= $attr ?>>
-<?php if ($placeholder || $pendingPhoto): ?>
-        <span class="frame frame--4x5 frame--wine product-image"><img src="/assets/images/henotis-placeholder.png" alt="Демонстрационная бутылка Henotis" loading="<?= $lazy ? 'lazy' : 'eager' ?>" decoding="async"><?php if ($pendingPhoto): ?><span class="wine-photo-note">Фото вина уточняется</span><?php endif ?></span>
+<?php if ($wine): ?>
+        <span class="frame frame--4x5 frame--wine product-image"><?=view('wine_image',['wine_slug'=>$t['slug']??'','wine_alt'=>$placeholder?'Демонстрационная бутылка Henotis':$t['title'],'wine_eager'=>!$lazy])?></span>
 <?php elseif ($t['photo']): ?>
-        <span class="frame frame--<?= $frame ?><?= $wine ? ' frame--wine product-image' : '' ?>"><?= photo_img($t['photo'], $t['title'], $lazy, false, $sizes) ?><?php if ($badge && !$wine): ?><span class="badge"><?= e($badge) ?></span><?php endif ?></span>
-<?php elseif ($wine): ?>
-        <span class="frame frame--4x5 frame--wine product-image"><?= view('bottle') ?><?php if ($pendingPhoto): ?><span class="wine-photo-note">Фото вина уточняется</span><?php endif ?></span>
+        <span class="frame frame--<?=$frame?>"><?=photo_img($t['photo'],$t['title'],$lazy,false,$sizes)?><?php if($badge):?><span class="badge"><?=e($badge)?></span><?php endif?></span>
 <?php endif ?>
         <span class="card__plate">
           <span class="card__text">

@@ -49,3 +49,8 @@
 .bottle-placeholder{width:100%;height:100%;object-fit:contain;padding:8% 0}.product-image:has(>img[src*=henotis-placeholder])>img{padding:8% 0}.frame--wine .bottle-placeholder{background:transparent}
 
 :root{--product-body:340px}.product-card .card__plate{height:var(--product-body);min-height:var(--product-body)}.product-card .card__title{font-size:22px}.product-card .wine__sub,.product-card .wine__type,.product-card .wine__grape,.product-card .wine__year{font-size:15px;line-height:1.5}@media(max-width:599px){:root{--product-body:330px}.product-card .card__title{font-size:18px}.product-card .wine__sub,.product-card .wine__type,.product-card .wine__grape,.product-card .wine__year{font-size:13px}}
+
+/* One approved image stage in catalogues, monastery cards and details. */
+.product-card .product-image,.frame--wine,.shop-detail-image,.detail-image:has(.wine-photo-normalized){box-sizing:border-box;position:relative;display:block;width:100%;height:auto;min-height:0;aspect-ratio:4/5;padding:0;background:#F7F5F0;overflow:hidden}
+.product-image img.wine-photo-normalized,.frame--wine img.wine-photo-normalized,.detail-image img.wine-photo-normalized{position:absolute;inset:0;display:block;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:0;object-fit:contain;mix-blend-mode:normal;transform:none;filter:none}
+.wine-photo-note{display:none}

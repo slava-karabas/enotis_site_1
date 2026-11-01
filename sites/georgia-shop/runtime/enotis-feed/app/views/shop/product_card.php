@@ -10,7 +10,7 @@ $factHtml=function()use($facts){foreach($facts as $fact)echo '<p class="wine-fac
 $buy=function()use($available,$gift,$p){if(!$available){echo '<p class="muted">Сейчас недоступно</p>';return;}?>
 <form method="post" action="<?=e(shop_link('/cart'))?>"><input type="hidden" name="csrf" value="<?=e($_SESSION['shop_csrf']??'')?>"><input type="hidden" name="lang" value="<?=e(current_lang())?>"><input type="hidden" name="action" value="add"><input type="hidden" name="key" value="<?=e(($gift?'g:':'p:').$p['id'])?>"><input type="hidden" name="quantity" value="1"><button class="button primary">В корзину</button></form>
 <?php };
-$photo=function()use($image,$p){if($image):?><img src="<?=e($image)?>" alt="<?=e($p['name'])?>" loading="lazy"><?php else:?><span class="frame frame--4x5"><?=view('bottle')?><span class="wine-photo-note">Фото вина уточняется</span></span><?php endif;};
+$photo=function()use($image,$p){echo view('wine_image',['wine_slug'=>$p['slug']??'','wine_alt'=>$p['name'],'wine_fallback'=>$image]);};
 ?>
 <article class="card product-card" data-panel-card data-name="<?=e(mb_strtolower($p['name']))?>">
 <a class="product-image" href="<?=e($href)?>" data-shop-details><?php $photo();?></a>
