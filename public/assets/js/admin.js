@@ -841,6 +841,15 @@
       f.appendChild(seoBox(tl, M));
     },
     wine: function (f, tl, M) {
+      var demoWine = tl.extension && tl.extension.kind === 'wine_placeholder';
+      f.appendChild(toggle('Демонстрационная карточка Henotis', demoWine, function (on) {
+        tl.extension = on ? { kind: 'wine_placeholder' } : {};
+        changed(); renderForm();
+      }));
+      if (demoWine) {
+        f.appendChild(h('p', { class: 'hint', text: 'Информация о винах уточняется. Демонстрационное изображение. Это не подтверждённое вино монастыря. Характеристики, цена и покупка скрыты.' }));
+        return;
+      }
       f.appendChild(photoField(tl, 'photo', '4:5', true));
       f.appendChild(textField(tl, 'title', t('field.name'), M.title));
       f.appendChild(textField(tl, 'subtitle', t('field.wine_subtitle'), M.subtitle, { hint: t('hint.wine_subtitle') }));

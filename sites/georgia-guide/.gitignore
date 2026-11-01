@@ -1,0 +1,5 @@
+runtime/preview-data/
+runtime/preview-uploads/
+*.sqlite*
+.env
+*.log

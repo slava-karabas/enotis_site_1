@@ -1,0 +1,25 @@
+# Запасной вариант, если на хостинге нельзя указать корень сайта = public/.
+# Тогда весь проект лежит в папке сайта, а этот файл:
+#  1) закрывает служебные папки,
+#  2) отправляет запросы в public/, если там есть такой файл или папка,
+#     иначе — в роутер public/index.php.
+Options -Indexes
+RewriteEngine On
+RewriteRule (^|/)\. - [F,L]
+RewriteRule \.(sqlite|sql|zip|log|json|md)$ - [F,L,NC]
+
+# If public/ is the document root, let its own rules handle the request.
+RewriteCond %{DOCUMENT_ROOT}/index.php -f
+RewriteCond %{DOCUMENT_ROOT}/../app/bootstrap.php -f
+RewriteRule ^ - [L]
+
+RewriteRule ^(app|data|bin|demo|docs|tests|\.github)(/|$) - [F,L]
+RewriteRule ^(composer\.(json|lock)|README\.md|CLAUDE\.md)$ - [F,L]
+
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
+RewriteRule ^(.*)$ public/$1 [L]
+
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^ public/index.php [L,QSA]

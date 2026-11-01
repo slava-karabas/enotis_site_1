@@ -156,7 +156,7 @@ function studio_compose(GdImage $cut): GdImage
 function wine_bg_rgb(): array
 {
     $css = @file_get_contents(ROOT_DIR . '/public/assets/css/theme.css') ?: '';
-    $hex = preg_match('~--c-wine-bg:\s*#([0-9A-Fa-f]{6})~', $css, $m) ? $m[1] : 'EAF4FB';
+    $hex = preg_match('~--c-wine-bg:\s*#([0-9A-Fa-f]{6})~', $css, $m) ? $m[1] : 'F7F5F0';
     return [hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))];
 }
 

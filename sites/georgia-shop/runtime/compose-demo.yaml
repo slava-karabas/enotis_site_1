@@ -1,0 +1,15 @@
+name: henotis-georgia-shop-demo
+services:
+  site:
+    image: henotis-georgia-shop-site:latest
+    ports:
+      - "127.0.0.1:8091:8080"
+    environment:
+      HENOTIS_PROFILE: shop
+      HENOTIS_DEMO_CHECKOUT: "1"
+      ENOTIS_MAIL_FILE: /data/test-mail.txt
+    volumes:
+      - ./demo-data:/data
+      - ./demo-uploads:/var/www/html/public/uploads
+      - ./preview-seed:/seed:ro
+    restart: unless-stopped

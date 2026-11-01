@@ -18,27 +18,32 @@ $sizes = $size === 'large' ? '(min-width: 1440px) 446px, (min-width: 1024px) cal
 <?php foreach($filterLabels as $index=>$label):$values=[];foreach($tiles as $tile){$ext=panel_block_extension($tile);$v=$ext['values'][$index]??'';if($v!=='')$values[$v]=$v;} ?><label style="display:inline-block;margin:8px"><?=e($label)?> <select data-tile-filter="<?=(int)$index?>"><option value=""><?=e($filter['all']??'Все')?></option><?php foreach($values as $v):?><option value="<?=e($v)?>"><?=e($v)?></option><?php endforeach ?></select></label><?php endforeach ?>
   <ul class="grid">
 <?php foreach ($tiles as $t):
-    $opens = tile_opens($t);
+    $placeholder = (panel_block_extension($t)['kind'] ?? '') === 'wine_placeholder';
+    $opens = $placeholder ? null : tile_opens($t);
     $lazy = $GLOBALS['eager']-- <= 0;
     $tag = $opens ? 'a' : 'div';
     $attr = $opens ? ' href="' . e(tile_url($t)) . '"' . ($opens === 'popup' ? ' data-popup-link="' . (int) $t['id'] . '"' : '') : '';
 ?>
     <li<?= eid($t['id']) ?> data-filter-values="<?=e(json_encode(panel_block_extension($t)['values']??[]))?>">
       <<?= $tag ?> class="card<?= $wine ? ' card--wine product-card' : '' ?>"<?= $attr ?>>
-<?php if ($t['photo']): ?>
+<?php if ($placeholder): ?>
+        <span class="frame frame--4x5 frame--wine product-image"><img src="/assets/images/henotis-placeholder.png" alt="Демонстрационная бутылка Henotis" loading="<?= $lazy ? 'lazy' : 'eager' ?>" decoding="async"></span>
+<?php elseif ($t['photo']): ?>
         <span class="frame frame--<?= $frame ?><?= $wine ? ' frame--wine product-image' : '' ?>"><?= photo_img($t['photo'], $t['title'], $lazy, false, $sizes) ?><?php if ($badge && !$wine): ?><span class="badge"><?= e($badge) ?></span><?php endif ?></span>
 <?php elseif ($wine): ?>
         <span class="frame frame--4x5 frame--wine product-image"><?= view('bottle') ?></span>
 <?php endif ?>
         <span class="card__plate">
           <span class="card__text">
-            <span class="card__title"><?= e($t['title']) ?></span>
-<?php if ($wine): ?>
+            <span class="card__title"><?= $wine && !$placeholder ? '<span class="wine-initial">'.e(mb_substr($t['title'],0,1)).'</span>'.e(mb_substr($t['title'],1)) : e($placeholder ? 'Информация о винах уточняется' : $t['title']) ?></span>
+<?php if ($placeholder): ?>
+            <span class="card__sub">Демонстрационное изображение. Это не подтверждённое вино монастыря.</span>
+<?php elseif ($wine): ?>
             <?= view('wine_facts', ['t' => $t, 'tag' => 'span']) ?>
 <?php elseif ($t['subtitle']): ?>
             <span class="card__sub"><?= e($t['subtitle']) ?></span>
 <?php endif ?>
-<?php if ($wine && show_prices() && $t['price'] !== null): ?>
+<?php if ($wine && !$placeholder && show_prices() && $t['price'] !== null): ?>
             <span class="price"><?= e(money((float) $t['price'])) ?></span>
 <?php endif ?>
           </span>

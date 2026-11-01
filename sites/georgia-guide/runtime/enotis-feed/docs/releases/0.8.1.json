@@ -1,0 +1,20 @@
+{
+  "ru": [
+    "Вертикальные изображения в карточках показываются без дополнительной обрезки.",
+    "Кэширование фотографий и ресурсов сайта; обновление CSS и JS без старого кэша.",
+    "Предзагрузка шрифтов соответствует языку страницы."
+  ],
+  "ka": [
+    "ბარათებში ვერტიკალური გამოსახულებები დამატებითი ჩამოჭრის გარეშე ჩანს.",
+    "საიტის რესურსების ქეშირება და სტილების განახლება."
+  ],
+  "en": [
+    "Portrait images in dialogs retain the selected crop.",
+    "Static asset caching with cache invalidation for CSS and JavaScript.",
+    "Preloaded fonts match the page language."
+  ],
+  "fr": [
+    "Les images verticales conservent leur cadrage dans les fenêtres.",
+    "Mise en cache des ressources et actualisation des styles."
+  ]
+}
