@@ -139,13 +139,15 @@ function render_photo(string $src, string $dst, int $w, int $h, float $rotate, a
         $cy = ($ih - $ch) / 2;
     }
     $out = imagecreatetruecolor($w, $h);
+    $png=str_ends_with(strtolower($dst),'.png');
+    imagefill($out,0,0,imagecolorallocate($out,$png?247:255,$png?245:255,$png?240:255));
     imagecopyresampled($out, $img, 0, 0, (int) round((float) $cx), (int) round((float) $cy), $w, $h, (int) round((float) $cw), (int) round((float) $ch));
     if (!is_dir(dirname($dst))) {
         mkdir(dirname($dst), 0775, true);
     }
     $tmp = $dst . '.tmp';
     imageinterlace($out, true);
-    $ok = imagejpeg($out, $tmp, 82) && rename($tmp, $dst);
+    $ok = ($png?imagepng($out,$tmp,6):imagejpeg($out,$tmp,82)) && rename($tmp,$dst);
     return $ok;
 }
 
@@ -166,4 +168,17 @@ function photo_img(?array $p, string $alt, bool $lazy = true, bool $head = false
     return sprintf('<img src="/uploads/%s" srcset="%s" sizes="%s" width="%d" height="%d" alt="%s"%s>',
         e($paths[$k . 'm']), e(implode(', ', $srcset)), e($sizes), $sz['m'][0], $sz['m'][1], e($alt),
         $lazy ? ' loading="lazy" decoding="async"' : '');
+}
+
+/** Lossless approved wine stage. Generated from the editor photo and invalidated by every crop/source change. */
+function wine_photo_url(array $p): ?string {
+    $p['aspect']='4:5';$name='wine-stage/'.$p['id'].'-'.photo_hash($p,false).'.png';$file=PUBLIC_UPLOADS.'/'.$name;
+    if(!is_file($file)&&!photo_cut($p,false,'l',$file))return null;
+    return '/uploads/'.$name;
+}
+
+function wine_photo_demo(?array $p): bool {
+    if(!$p)return true;$src=(int)$p['use_processed']===1&&$p['processed_path']?$p['processed_path']:$p['original_path'];
+    $file=ORIGINALS_DIR.'/'.$src;$demo=ROOT_DIR.'/public/assets/wines/henotis.png';
+    return is_file($file)&&is_file($demo)&&hash_file('sha256',$file)===hash_file('sha256',$demo);
 }

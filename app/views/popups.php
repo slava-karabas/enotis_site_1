@@ -4,6 +4,7 @@ foreach (tiles_in($blocks) as $t) {
     if (tile_opens($t) !== 'popup') {
         continue;
     }
+    if((panel_block_extension($t)['kind']??'')==='wine_placeholder'){$t['title']='Название вина';$t['seo_title']='Название вина';}
     $prev = feed($t['section_id']);
     $isOpen = $open && (int) $open['id'] === (int) $t['id'];
     $html = view('popup', ['t' => $t, 'pageUrl' => $pageUrl, 'isOpen' => $isOpen]);

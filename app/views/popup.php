@@ -1,5 +1,7 @@
 <?php
 $wine = is_wine($t);
+$placeholder=(panel_block_extension($t)['kind']??'')==='wine_placeholder';
+if($placeholder){$t['title']='Название вина';$t['body']='';$t['price']=null;}
 $frame = $wine ? '4x5' : str_replace(':', 'x', node($t['parent_id'])['frame'] ?? '4:5');
 $hid = 'pp-title-' . $t['id'];
 ?>
@@ -11,16 +13,16 @@ $hid = 'pp-title-' . $t['id'];
       <a class="pp__x" href="<?= e($pageUrl) ?>" data-close aria-label="<?= e(t('popup.close')) ?>">×</a>
     </div>
     <div class="pp__body"<?= eid($t['id']) ?>>
-<?php if ($t['photo']): ?>
+<?php if ($wine): ?>
+      <div class="pp__photo frame frame--4x5 frame--wine"><?=view('wine_image',['wine_photo'=>$t['photo']??null,'wine_slug'=>$t['slug']??'','wine_alt'=>$t['title'],'wine_eager'=>$isOpen])?></div>
+<?php elseif ($t['photo']): ?>
       <div class="pp__photo frame frame--<?= $frame ?><?= $wine ? ' frame--wine' : '' ?>"><?= photo_img($t['photo'], $t['title'], !$isOpen, false, '(min-width: 700px) 640px, 100vw') ?></div>
 <?php elseif ($wine): ?>
       <div class="pp__photo frame frame--4x5 frame--wine"><?= view('bottle') ?></div>
 <?php endif ?>
-      <h2 id="<?= $hid ?>"><?= e($t['title']) ?></h2>
-<?php if ($wine): ?>
-      <div class="wine__facts"><?= view('wine_facts', ['t' => $t, 'tag' => 'p']) ?></div>
-<?php elseif ($t['subtitle']): ?>
-      <p class="pp__sub"><?= e($t['subtitle']) ?></p>
+<?php if($wine): $card=wine_card_data($t);echo view('wine_card_text',['card'=>$card,'heading'=>'h2','title_id'=>$hid]);if($card['demo']):?><p class="wine-card-explanation">Изображение Henotis не является этикеткой производителя.<?=$card['placeholder']?' Конкретное вино пока не подтверждено.':''?></p><?php endif;else:?>
+      <h2 id="<?=$hid?>"><?=e($t['title'])?></h2>
+      <?php if($t['subtitle']):?><p class="pp__sub"><?=e($t['subtitle'])?></p><?php endif?>
 <?php endif ?>
 <?php foreach (paragraphs($t['body']) as $p): ?>
       <p><?= e($p) ?></p>
@@ -31,6 +33,7 @@ $hid = 'pp-title-' . $t['id'];
 <?php if (!$wine && ($t['place'] || has_coords($t))): ?>
 <?= view('place', ['t' => $t]) ?>
 <?php endif ?>
+<?php $ref=panel_block_extension($t); if(($ref['kind']??'')==='wine_reference'&&!empty($ref['source'])): ?><p class="wine-source"><a href="<?= e($ref['source']) ?>" target="_blank" rel="noopener noreferrer">Источник сведений о вине</a></p><?php endif ?>
     </div>
   </div>
 </div>

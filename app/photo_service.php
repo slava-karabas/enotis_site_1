@@ -140,13 +140,16 @@ function studio_compose(GdImage $cut): GdImage
     $out = imagecreatetruecolor($W, $H);
     imagefill($out, 0, 0, imagecolorallocate($out, $r, $g, $b));
     imagealphablending($out, true);
-    // Тень: несколько вложенных эллипсов, от светлого края к тёмному центру.
-    $sw = $dw * 1.15;
-    $sh = max(12, $dw * 0.16);
-    $cy = $dy + $dh + $sh * 0.1;
-    for ($i = 0; $i < 12; $i++) {
-        $k = 1 - $i / 12;
-        imagefilledellipse($out, (int) ($W / 2), (int) $cy, (int) ($sw * $k), (int) ($sh * $k), imagecolorallocatealpha($out, 40, 30, 25, 123 - $i * 3));
+    // Smooth Gaussian contact shadow; no concentric rings or bitmap scaling edges.
+    $sx = max(10.0, $dw * 0.35);
+    $sy = max(3.0, $dw * 0.035);
+    $cy = $dy + $dh + 1;
+    for ($y = max(0, (int) ($cy - 3 * $sy)); $y <= min($H - 1, (int) ($cy + 3 * $sy)); $y++) {
+        for ($x = max(0, (int) ($W / 2 - 3 * $sx)); $x <= min($W - 1, (int) ($W / 2 + 3 * $sx)); $x++) {
+            $opacity = 0.20 * exp(-0.5 * ((($x - $W / 2) / $sx) ** 2 + (($y - $cy) / $sy) ** 2));
+            if ($opacity < 0.004) continue;
+            imagesetpixel($out, $x, $y, imagecolorallocatealpha($out, 40, 30, 25, (int) round(127 * (1 - $opacity))));
+        }
     }
     imagecopyresampled($out, $cut, $dx, $dy, $bx, $by, $dw, $dh, $bw, $bh);
     return $out;
@@ -156,7 +159,7 @@ function studio_compose(GdImage $cut): GdImage
 function wine_bg_rgb(): array
 {
     $css = @file_get_contents(ROOT_DIR . '/public/assets/css/theme.css') ?: '';
-    $hex = preg_match('~--c-wine-bg:\s*#([0-9A-Fa-f]{6})~', $css, $m) ? $m[1] : 'EAE0D2';
+    $hex = preg_match('~--c-wine-bg:\s*#([0-9A-Fa-f]{6})~', $css, $m) ? $m[1] : 'F7F5F0';
     return [hexdec(substr($hex, 0, 2)), hexdec(substr($hex, 2, 2)), hexdec(substr($hex, 4, 2))];
 }
 
