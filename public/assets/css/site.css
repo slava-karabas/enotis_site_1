@@ -414,3 +414,17 @@ h1,h2,h3,.card__title,.hdr__title,.pp__name,.country-group__title{font-family:va
 .hdr__logo,.ftr__logo{width:189px;height:60px;max-width:100%;object-fit:contain;display:block}
 
 [id^="block-"],#monastery-about,#directions,#footer-social,#footer-contact{scroll-margin-top:100px}
+
+/* Existing editorial pages retain their approved wide image and flowing text. */
+.tpage--editorial .tpage__top{display:flow-root;padding-top:28px}
+.tpage--editorial .tpage__photo{float:none;width:auto;margin:0 0 24px}
+.tpage--editorial .tpage__text{display:block;overflow-wrap:break-word}
+.tpage--editorial .tpage__text h1{font-size:var(--fs-title-l);margin-bottom:14px}
+@media(min-width:768px){.tpage--editorial .tpage__top{padding-top:40px}}
+@media(min-width:1024px){
+ .tpage--editorial .tpage__photo{float:left;width:calc((100% - 36px)/2);margin:0 36px 20px 0}
+ .tpage--editorial .tpage__text{display:contents}
+ .tpage--editorial .tpage__text h1{font-size:clamp(36px,3.2vw,48px)}
+}
+@media(max-width:599px){.hdr__logo{width:142px;height:45px}}
+#about{scroll-margin-top:100px}

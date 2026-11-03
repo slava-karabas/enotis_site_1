@@ -46,10 +46,9 @@ $plain = preg_replace('~^/(' . implode('|', LANGS) . ')(?=/|$)~', '', $here) ?: 
     <details class="menu" data-menu>
       <summary aria-label="<?= e(t('nav.menu')) ?>"><svg class="menu__icon" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M3 5h18M3 12h18M3 19h18"/></svg></summary>
       <nav class="menu__list" aria-label="Навигация по сайту">
-        <?php if(presentation('menu_home')!==''): ?><a href="<?= e(url('/')) ?>"><?=e(presentation('menu_home'))?></a><?php endif ?>
-        <?php if(presentation('menu_about')!==''): ?><a href="<?= e(url('/')) ?>#about"><?=e(presentation('menu_about'))?></a><?php endif ?>
-        <?php if(presentation('menu_social')!==''): ?><a href="#footer-social"><?=e(presentation('menu_social'))?></a><?php endif ?>
-        <?php if(presentation('menu_contact')!==''): ?><a href="#footer-contact"><?=e(presentation('menu_contact'))?></a><?php endif ?>
+<?php foreach (presentation_navigation() as $item): ?>
+        <a href="<?=e($item['url'])?>"><?=e($item['title'])?></a>
+<?php endforeach ?>
 <?php if ($menuPhone = setting('footer_phone')): ?>
         <a class="menu__phone" href="tel:<?= e(preg_replace('/[^\d+]/', '', $menuPhone)) ?>"><?= e($menuPhone) ?></a>
 <?php endif ?>

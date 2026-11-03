@@ -14,9 +14,9 @@ $socialByNetwork = array_column($social, 'url', 'network');
   <div class="ftr__in">
     <div class="ftr__main">
       <p class="ftr__brand"><?php if($logo=setting('logo_path')): ?><img class="ftr__logo" src="/uploads/<?=e($logo)?>" alt="<?=e(site_title())?>" width="189" height="60"><?php else: ?><?=e(site_title())?><?php endif ?></p>
-      <p class="ftr__title"><?= e(site_title()) ?></p>
+      <?php if($logo): ?><p class="ftr__title"><?= e(site_title()) ?></p><?php endif ?>
       <?php if(presentation('description')!==''): ?><p class="ftr__description"><?=e(presentation('description'))?></p><?php endif ?>
-      <nav class="ftr__nav" aria-label="Навигация в подвале"><?php if(presentation('menu_home')!==''): ?><a href="<?= e(url('/')) ?>"><?=e(presentation('menu_home'))?></a><?php endif ?><?php if(presentation('menu_about')!==''): ?><a href="<?= e(url('/')) ?>#about"><?=e(presentation('menu_about'))?></a><?php endif ?><?php foreach ($docs as $k => $d): ?><a href="<?= e(url('/doc/' . $k)) ?>"><?= e($d['title']) ?></a><?php endforeach ?></nav>
+      <nav class="ftr__nav" aria-label="Навигация в подвале"><?php foreach(presentation_navigation() as $item): ?><a href="<?=e($item['url'])?>"><?=e($item['title'])?></a><?php endforeach ?><?php foreach ($docs as $k => $d): ?><a href="<?= e(url('/doc/' . $k)) ?>"><?= e($d['title']) ?></a><?php endforeach ?></nav>
     </div>
     <div class="ftr__connection">
       <section id="footer-social" class="ftr__community" aria-label="Социальные сети проекта">
@@ -46,10 +46,12 @@ $socialByNetwork = array_column($social, 'url', 'network');
           </li>
 <?php endforeach ?>
         </ul>
+<?php if ($phone): ?>
         <div class="ftr__phone-row">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6.5 3h3l1.4 5-2 1.5a15 15 0 0 0 5.6 5.6l1.5-2 5 1.4v3c0 2-1.8 3.5-3.8 3-7-1.8-12-6.8-13.8-13.8C2.9 4.8 4.5 3 6.5 3Z"/></svg>
-<?php if ($phone): ?><a href="tel:<?= e(preg_replace('/[^\d+]/', '', $phone)) ?>"><?= e($phone) ?></a><?php else: ?><?php endif ?>
+          <a href="tel:<?= e(preg_replace('/[^\d+]/', '', $phone)) ?>"><?= e($phone) ?></a>
         </div>
+<?php endif ?>
 <?php if ($email): ?><p class="ftr__email"><a href="mailto:<?= e($email) ?>"><?= e($email) ?></a></p><?php endif ?>
       </section>
     </div>

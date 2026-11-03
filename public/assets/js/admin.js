@@ -966,8 +966,10 @@
     S.site.blocks.concat(first ? first.blocks : []).forEach(function (b) { if (b.type === 'tiles' && !b.hidden && b.kind !== 'wine') b.tiles.forEach(function (tl) { if (!tl.hidden && opens(tl)) n++; }); });
     var shown = hd.burger === 'on' ? true : hd.burger === 'off' ? false : n > 6;
     f.appendChild(seg(t('field.burger'), [['auto', t('burger.auto')], ['on', t('burger.on')], ['off', t('burger.off')]], hd.burger, function (v) { hd.burger = v; changed(); renderForm(); },
-      'Пункты меню: все монастыри, о проекте, соцсети, связь с проектом. Телефон берётся из настроек подвала.'));
+      'Главная, разделы сайта, о проекте, соцсети и связь. Названия задаются ниже; телефон берётся из подвала.'));
     var ap=S.site.settings.appearance||(S.site.settings.appearance={});
+    f.appendChild(toggle('Показывать страницы разделов в меню', ap.menu_sections==='1', function(v){ap.menu_sections=v?'1':'0';changed();}));
+    f.appendChild(seg('Верх страницы раздела', [['editorial','Фото и текст'],['guide','Путеводитель']], ap.page_layout||'editorial', function(v){ap.page_layout=v;changed();}, 'Выбранная компоновка сохраняется вместе с содержимым сайта.'));
     f.appendChild(plainField(ap, 'menu_home', 'Меню: главная', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
     f.appendChild(plainField(ap, 'menu_about', 'Меню: о проекте', {hint:'Пустое поле скрывает подпись или пункт меню.'}));
     f.appendChild(plainField(ap, 'menu_catalog', 'Меню: каталог', {hint:'Пустое поле скрывает подпись или пункт меню.'}));

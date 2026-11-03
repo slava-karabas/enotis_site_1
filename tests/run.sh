@@ -6,6 +6,7 @@ php bin/check-lang.php
 php tests/map-template.php
 php tests/contacts.php
 php tests/integrations.php
+php tests/legacy-palomnik.php
 for kind in sample aggregator settings photo; do
   export ENOTIS_DATA=$(mktemp -d)
   export ENOTIS_MAIL_FILE="$ENOTIS_DATA/mail.txt"

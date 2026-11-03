@@ -1,5 +1,4 @@
-# Релиз движка (спецификация 2.1, раздел 14.2). Сам: после слияния в main, если в коде новая
-# версия ENGINE_VERSION, для которой ещё нет релиза. Вручную — тегом vX.Y.Z.
+# General updater releases require an explicit version tag. Main deploys only the test site.
 # ZIP кода + latest.json + ZIP «Паломника» → релиз на GitHub и папка update.enotis.shop по FTP.
 # Сервер обновлений: секрет UPDATE_FTP_DIR — папка update.enotis.shop на хостинге (например /www/update.enotis.shop).
 # Вход по FTP — тот же, что у выкладки тестового сайта (FTP_HOST, FTP_USER, FTP_PASSWORD);
@@ -21,6 +20,9 @@ jobs:
 
   release:
     needs: check
+    # The Palomnik deployment is not a general client-update release.
+    # Publish updater artifacts only with an explicit version tag.
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

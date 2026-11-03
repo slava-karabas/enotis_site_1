@@ -41,6 +41,7 @@ ENOTIS_DATA="$W/data" ENOTIS_UPDATE_URL="http://127.0.0.1:$PS/latest.json" php -
 SITE=$!
 trap 'kill $SRV $SITE 2>/dev/null || true; rm -rf "$W"' EXIT
 sleep 1
+SCHEMA=$(ENOTIS_DATA="$W/data" php -r 'require $argv[1];echo schema_version(db());' "$W/site/app/bootstrap.php")
 OLD=$(curl -fsS "$B/health" | grep -o 'engine=[0-9.]*' | cut -d= -f2)
 
 # Мастер установки: без администратора админка ведёт на /install; после — /install закрыт.
@@ -76,7 +77,7 @@ test "$(code "$B/")" = 200
 curl -fsS -b "$J" "$B/admin/api/update" | jget rollback | grep -qx "$OLD"
 test "$(api update_rollback | jget ok)" = true
 curl -fsS "$B/health" | grep -q "engine=$OLD"
-curl -fsS "$B/health" | grep -q 'schema=5\b'
+curl -fsS "$B/health" | grep -q "schema=$SCHEMA\b"
 test ! -e "$W/site/app/release_probe.php"
 test "$(code "$B/")" = 200
 
