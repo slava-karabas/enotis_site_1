@@ -15,6 +15,7 @@ code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
 release() { # версия, текст миграции
   local d="$W/rel-$1"; copy_code "$d"
   sed -i "s/const ENGINE_VERSION = '[0-9.]*'/const ENGINE_VERSION = '$1'/" "$d/app/bootstrap.php"
+  printf '{"product":"enotis-feed-free-v2","version":"%s"}' "$1" > "$d/app/product.json"
   printf '%s\n' "$2" > "$d/app/migrations/900_update_probe.sql"
   echo "<?php // новый файл релиза" > "$d/app/release_probe.php"
   mkdir -p "$W/srv"
@@ -25,7 +26,7 @@ release() { # версия, текст миграции
 }
 latest() { # версия, [sha]
   local sha=${2:-$(sha256sum "$W/srv/enotis-$1.zip" | cut -d' ' -f1)}
-  printf '{"version":"%s","zip":"http://127.0.0.1:%s/enotis-%s.zip","sha256":"%s","min_php":"8.1","notes":{"ru":["Проверка"]}}' "$1" "$PS" "$1" "$sha" > "$W/srv/latest.json"
+  printf '{"product":"enotis-feed-free-v2","version":"%s","zip":"http://127.0.0.1:%s/enotis-%s.zip","sha256":"%s","min_php":"8.1","notes":{"ru":["Проверка"]}}' "$1" "$PS" "$1" "$sha" > "$W/srv/latest.json"
 }
 release 9.9.9 'CREATE TABLE update_probe (x INTEGER);'
 release 9.9.8 'CREATE TABLE elements (x INTEGER);'
@@ -40,6 +41,7 @@ ENOTIS_DATA="$W/data" ENOTIS_UPDATE_URL="http://127.0.0.1:$PS/latest.json" php -
 SITE=$!
 trap 'kill $SRV $SITE 2>/dev/null || true; rm -rf "$W"' EXIT
 sleep 1
+SCHEMA=$(ENOTIS_DATA="$W/data" php -r 'require $argv[1];echo schema_version(db());' "$W/site/app/bootstrap.php")
 OLD=$(curl -fsS "$B/health" | grep -o 'engine=[0-9.]*' | cut -d= -f2)
 
 # Мастер установки: без администратора админка ведёт на /install; после — /install закрыт.
@@ -75,9 +77,16 @@ test "$(code "$B/")" = 200
 curl -fsS -b "$J" "$B/admin/api/update" | jget rollback | grep -qx "$OLD"
 test "$(api update_rollback | jget ok)" = true
 curl -fsS "$B/health" | grep -q "engine=$OLD"
-curl -fsS "$B/health" | grep -q 'schema=1\b'
+curl -fsS "$B/health" | grep -q "schema=$SCHEMA\b"
 test ! -e "$W/site/app/release_probe.php"
 test "$(code "$B/")" = 200
+
+# Чужой манифест не должен предлагать или устанавливать обновление.
+php -r '$p=$argv[1];$j=json_decode(file_get_contents($p),true);$j["product"]="enotis-feed-1";file_put_contents($p,json_encode($j));' "$W/srv/latest.json"
+api update_check > "$W/foreign.json"
+test "$(jget newer < "$W/foreign.json")" = false
+test "$(step prepare | jget ok)" = false
+latest 9.9.9
 
 # Плохая контрольная сумма: код не тронут.
 latest 9.9.9 0000000000000000000000000000000000000000000000000000000000000000

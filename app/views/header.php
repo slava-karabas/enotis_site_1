@@ -12,7 +12,7 @@ foreach (tiles_in(home_feed_blocks()) as $t) {
     }
 }
 $burger = match (setting('header_burger', 'auto')) {
-    'on'    => (bool) $menu,
+    'on'    => true,
     'off'   => false,
     default => count($menu) > 6,
 };
@@ -25,10 +25,13 @@ $plain = preg_replace('~^/(' . implode('|', LANGS) . ')(?=/|$)~', '', $here) ?: 
     <a class="hdr__back" href="<?= e($back) ?>"><?= e(t('nav.back')) ?></a>
 <?php endif ?>
     <a class="hdr__brand" href="<?= e(url('/')) ?>">
+<?php if (!$logo): ?>
+      <span class="hdr__title"><?= e(site_title()) ?></span>
+<?php endif ?>
 <?php if ($logo): ?>
       <img class="hdr__logo" src="/uploads/<?= e($logo) ?>" alt="<?= $withTitle ? '' : e(site_title()) ?>" height="40">
 <?php endif ?>
-<?php if ($withTitle): ?>
+<?php if ($withTitle && $logo): ?>
       <span class="hdr__title"><?= e(site_title()) ?></span>
 <?php endif ?>
     </a>
@@ -41,11 +44,14 @@ $plain = preg_replace('~^/(' . implode('|', LANGS) . ')(?=/|$)~', '', $here) ?: 
 <?php endif ?>
 <?php if ($burger): ?>
     <details class="menu" data-menu>
-      <summary aria-label="<?= e(t('nav.menu')) ?>"><span class="menu__icon" aria-hidden="true">☰</span></summary>
-      <nav class="menu__list">
-<?php   foreach ($menu as $t): ?>
-        <a href="<?= e(tile_url($t)) ?>"<?= tile_opens($t) === 'popup' ? ' data-popup-link="' . (int) $t['id'] . '"' : '' ?>><?= e($t['title']) ?></a>
-<?php   endforeach ?>
+      <summary aria-label="<?= e(t('nav.menu')) ?>"><svg class="menu__icon" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M3 5h18M3 12h18M3 19h18"/></svg></summary>
+      <nav class="menu__list" aria-label="Навигация по сайту">
+<?php foreach (presentation_navigation() as $item): ?>
+        <a href="<?=e($item['url'])?>"><?=e($item['title'])?></a>
+<?php endforeach ?>
+<?php if ($menuPhone = setting('footer_phone')): ?>
+        <a class="menu__phone" href="tel:<?= e(preg_replace('/[^\d+]/', '', $menuPhone)) ?>"><?= e($menuPhone) ?></a>
+<?php endif ?>
       </nav>
     </details>
 <?php endif ?>

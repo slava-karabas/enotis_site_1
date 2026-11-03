@@ -7,4 +7,4 @@
   <meta name="robots" content="noindex, nofollow">
   <title><?= e($title) ?></title>
   <link rel="stylesheet" href="/assets/fonts/fonts.css?v=<?= ENGINE_VERSION ?>">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=<?= ENGINE_VERSION ?>">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=<?= ENGINE_VERSION ?>-ui20261026">

@@ -1,9 +1,14 @@
 <?php
+// Existing editorial sites keep their approved layout; guides opt in explicitly.
+if (presentation('page_layout') === 'guide') {
+    echo view('page_tile_guide', get_defined_vars());
+    return;
+}
 $GLOBALS['h1_done'] = true;
 $t = $tile;
 $hasPlace = $t['place'] || has_coords($t);
 ?>
-<article class="tpage">
+<article class="tpage tpage--editorial">
   <header class="tpage__top wrap"<?= eid($t['id']) ?>>
 <?php if ($t['photo']): ?>
     <div class="tpage__photo frame frame--3x2"><?= photo_img($t['photo'], $t['title'], false, true, '(min-width: 1440px) 674px, (min-width: 1024px) calc((100vw - 92px) / 2), (min-width: 600px) calc(100vw - 56px), calc(100vw - 32px)') ?></div>
