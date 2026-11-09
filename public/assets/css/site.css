@@ -116,11 +116,11 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 /* Карта */
 .map__h { font-size: var(--fs-title-m); margin-bottom: 16px; }
 .map__box { border-radius: var(--radius); overflow: hidden; background: var(--c-paper); }
-.map__box.is-map { height: clamp(320px, 50vw, 560px); }
+
 .map__list { columns: 2 220px; margin: 0; padding: 18px 18px 18px 36px; }
 .map__list li { margin: 4px 0; }
 .map__hint { font-size: 13px; color: var(--c-mute); margin-top: 8px; }
-.marker { display: block; width: 16px; height: 16px; border-radius: 50%; background: var(--c-nav); border: 3px solid var(--c-paper); box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+
 .leaflet-container { font: inherit; }
 .leaflet-container a.leaflet-popup-close-button { color: var(--c-mute); }
 .leaflet-popup-content a { color: var(--c-nav); font-weight: 600; }
@@ -258,3 +258,183 @@ body.is-locked { overflow: hidden; }
 /* Бейдж таба поверх фото плитки, слева сверху */
 .badge { position: absolute; top: 12px; left: 12px; padding: 5px 10px; border-radius: 999px; background: var(--c-nav); color: var(--c-paper);
   font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; line-height: 1.2; }
+
+/* Compact map and pin markers: specification 2.2, 28.10.2026. */
+.map__head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+.map__head .map__h { margin:0; }
+.map__expand { margin-left:auto; padding:7px 12px; border:1px solid var(--c-action); border-radius:5px; background:transparent; color:var(--c-action); font:inherit; font-size:13px; cursor:pointer; }
+.map__expand[hidden] { display:none; }
+.map__box.is-map { height:260px; }
+@media(min-width:600px) { .map__box.is-map { height:320px; } }
+@media(min-width:1024px) { .map__box.is-map { height:360px; } }
+.marker { display:block; width:24px; height:32px; color:var(--c-action); filter:drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
+.marker svg { display:block; width:100%; height:100%; }
+.map__dialog { width:min(1180px,96vw); height:min(840px,94vh); height:min(840px,94dvh); max-width:none; max-height:none; padding:0; border:1px solid var(--c-line); border-radius:var(--radius); background:var(--c-paper); color:var(--c-ink); overflow:hidden; }
+.map__dialog::backdrop { background:rgba(20,25,30,.6); }
+.map__dialog-head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 18px; height:62px; border-bottom:1px solid var(--c-line); }
+.map__dialog-head h2 { font-size:19px; margin:0; }
+.map__dialog-close { padding:7px 11px; border:1px solid var(--c-line); border-radius:5px; background:var(--c-paper); color:var(--c-ink); font:inherit; cursor:pointer; white-space:nowrap; }
+.map__dialog-body { height:calc(100% - 62px); }
+.map__dialog .map__box.is-map { height:100%; border-radius:0; }
+.map__popup-title { display:block; margin-bottom:8px; overflow-wrap:anywhere; }
+.map__popup-actions { display:flex; gap:12px; flex-wrap:wrap; }
+.map__popup-actions a { padding:3px 0; }
+
+/* Directions remain available after the monastery wines, without a full map interrupting the introduction. */
+.tpage__directions { margin-top:32px; margin-bottom:32px; }
+.tpage__directions > summary { cursor:pointer; font-weight:600; padding:12px 0; }
+
+.country-group { margin-top: var(--blk-gap); }
+.country-group__title { font-family: var(--font-head); font-size: clamp(24px, 3vw, 34px); font-weight: 500; }
+.country-group > .blk { margin-top: 20px; }
+
+/* Open directions follow products; the shared map controls 360/320/260px heights. */
+#directions { scroll-margin-top: 84px; }
+.tpage__route-link { display:inline-flex; gap:6px; margin-top:8px; color:var(--c-action); font-weight:600; }
+.tpage__directions > .map { margin-top:0; }
+.tpage__route-info { margin-top:14px; }
+.tpage__products-empty h2 { font-size:var(--fs-title-m); margin-bottom:10px; }
+.tpage__products-empty p { color:var(--c-mute); }
+.text--intro > p { max-width:840px; }
+.ftr__description { max-width:520px; }
+.ftr__nav { display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:16px; }
+.ftr__bottom { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:18px; padding-bottom:24px; border-top:1px solid var(--c-line); }
+.source-credit { padding:20px 0; border-bottom:1px solid var(--c-line); }
+.source-credit h2 { font-size:24px; margin-bottom:8px; }
+
+/* Shared place-page standard, 30.10.2026. No admin or client data overrides. */
+.tpage__top { display:grid; grid-template-columns:minmax(0,1fr); gap:24px; }
+.tpage__photo { float:none; width:auto; margin:0; align-self:start; }
+.tpage__text { display:block; min-width:0; font-size:17px; line-height:1.5; }
+.tpage__text h1 { font-size:32px; }
+.tpage__text .tpage__subheading { font-size:22px; margin:20px 0 10px; }
+.tpage .blk > h2, .tpage .tiles__h, .tpage .map__h, .contacts h2 { font-size:26px; }
+.tpage__place { margin-top:var(--blk-gap); }
+.tpage .place__address { font-size:17px; margin:0 0 18px; }
+.contacts__surface { padding:24px; border:1px solid var(--c-line); border-radius:var(--radius); background:var(--c-paper); }
+.contacts h2 { margin:0 0 18px; }
+.contacts__list { list-style:none; padding:0; margin:0; display:grid; gap:14px 36px; }
+.contacts__list li { display:grid; gap:3px; min-width:0; font-size:17px; line-height:1.5; }
+.contacts__label { font-size:15px; color:var(--c-mute); }
+.contacts__list a { overflow-wrap:anywhere; text-underline-offset:3px; }
+@media(min-width:600px) { .contacts__list { grid-template-columns:repeat(2,minmax(0,1fr)); } .tpage .blk > h2, .tpage .tiles__h, .tpage .map__h, .contacts h2 { font-size:32px; } }
+@media(min-width:1024px) { .tpage__top { grid-template-columns:repeat(2,minmax(0,1fr)); gap:36px; } .tpage__text h1 { font-size:46px; } }
+
+/* Georgia guide: approved centred title, compact introduction and plain visiting text. */
+:root{--fs-body:17px;--fs-small:15px;--fs-title-l:46px;--fs-title-m:32px;--fs-title-s:22px}
+.guide-page__heading{padding-top:26px;text-align:center}.guide-page__heading h1{font-size:46px;margin:0 0 10px}.guide-page__heading .guide-location{font-size:15px;color:var(--c-mute);margin:0}
+.guide-nav{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin:22px 0 0}.guide-nav a{font-size:15px;text-decoration:none;padding:3px 0;color:var(--c-ink)}
+.tpage__top{padding-top:28px;align-items:center}.tpage__photo{align-self:center}.tpage__text h2.tpage__subheading{font-size:22px;margin:20px 0 10px}.tpage__text p{margin:0 0 16px}.tpage__text p:last-child{margin:0}.tpage .text{font-size:17px;line-height:1.5}.tpage .text > *{max-width:760px}
+.tpage__directions{margin-top:48px}.tpage .feed>.blk{margin-top:48px}.tpage .feed .blk h2,.tpage .map__h{font-size:32px}.tpage .contacts__label,.tpage .btn,.tpage .map__hint,.map__expand,.ftr,.ftr p,.ftr a,.tabs a,.fine,.cookie,.cookie p{font-size:15px}.contacts__list a{font-size:17px}.contacts__surface{border:0}.guide-source{font-size:15px;color:var(--c-mute);margin-top:20px}.guide-source a{font-size:15px}.tpage__route-info p{font-size:17px}.tpage__route-info .btn{font-size:15px}
+html{scroll-padding-top:85px}.guide-nav a:focus-visible{outline:2px solid var(--c-nav)}
+@media(max-width:599px){:root{--fs-title-l:32px;--fs-title-m:26px}.guide-page__heading h1{font-size:32px}.guide-nav{gap:10px 18px}.tpage .feed .blk h2,.tpage .map__h{font-size:26px}.tpage__top{padding-top:24px}.guide-page__heading{padding-top:22px}.tpage .feed>.blk{margin-top:32px}.tpage__directions{margin-top:32px}}
+/* Shared text roles on the guide homepage and supporting pages. */
+.hdr__title,.card:not(.card--wine) .card__title{font-size:22px}
+.card__sub,.langs,.photo figcaption,.eyebrow,.map__hint,.place__h,.svc__note,.qr figcaption,.tabs__t,.badge,.ftr__docs,.cookie-note,.cookie__text{font-size:15px}
+.badge{max-width:calc(100% - 24px);white-space:normal;letter-spacing:normal;text-transform:none;line-height:1.3}
+
+/* Approved 30.10: text starts at the photo top; contacts always present. */
+.tpage__top{align-items:start}.tpage__photo{align-self:start}.tpage__text{align-self:start}.contacts__empty{font-size:17px;line-height:1.5;margin:0;color:var(--c-mute)}
+
+/* Project footer: social links use the existing admin fields. Empty destinations are not links. */
+.ftr{margin-top:64px}.ftr__in{padding-top:36px;padding-bottom:24px;gap:28px 64px;align-items:start}.ftr__brand{font-family:var(--font-head);font-size:22px!important;font-weight:600;color:var(--c-action);margin:0 0 10px}.ftr .ftr__title{font-family:var(--font-body);font-weight:400;font-size:17px;margin:0 0 10px}.ftr__description{max-width:52ch;line-height:1.5}.ftr__community h2,.ftr__project-contact h2{font-family:var(--font-body);font-size:17px;font-weight:600;margin:0 0 10px;color:var(--c-ink)}.ftr__community h2::first-letter,.ftr__project-contact h2::first-letter{color:inherit}.ftr__community p{max-width:46ch;line-height:1.5}.ftr__social{margin-top:18px;gap:10px}.ftr__social a,.ftr__social-pending{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:auto;height:auto;min-height:44px;padding:10px 14px;border-radius:24px;background:var(--c-bg);font:15px/1.3 var(--font-body);color:var(--c-ink);text-decoration:none}.ftr__social-pending{color:var(--c-mute)}.ftr__social svg{flex:none;width:19px;height:19px}.ftr .ftr__soon{font-size:15px;margin:12px 0 0;color:var(--c-mute)}.ftr__project-contact{margin-top:22px}.ftr__legal{grid-column:1/-1;text-align:left}.ftr__docs{justify-content:flex-start}.ftr__bottom{padding-top:18px;padding-bottom:22px;border-top:1px solid var(--c-line)}
+@media(min-width:768px){.ftr__in{grid-template-columns:1.15fr 1fr}}@media(max-width:767px){.ftr__in{grid-template-columns:1fr;gap:26px}.ftr__bottom{display:flex;flex-wrap:wrap;gap:12px}.ftr__social{gap:8px}.ftr__social a,.ftr__social-pending{padding:10px 12px}}
+
+/* Footer preview: publication channels and direct communication have distinct roles. */
+.ftr__connection{display:grid;gap:28px}.ftr__messages{background:var(--c-nav-soft);border-radius:14px;padding:22px 24px}.ftr__messages h2{font:600 17px/1.4 var(--font-body);margin:0 0 8px;color:var(--c-nav)}.ftr__messages h2::first-letter{color:inherit}.ftr__messages>p{margin:0 0 12px}.ftr__messengers a,.ftr__messengers .ftr__social-pending{background:var(--c-paper);color:var(--c-nav);border:1px solid #cdd8d0}.ftr__messengers a:hover{background:#fff}.ftr .ftr__role-note{font-size:15px;line-height:1.5;color:var(--c-mute);margin:12px 0 0}.ftr__phone-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px;color:var(--c-nav);font-size:17px}.ftr__phone-row small{font-size:15px;color:var(--c-mute)}.ftr__phone-row a{color:var(--c-nav)}.ftr__phone-row svg{flex:none}.ftr__email{margin:12px 0 0}.ftr__main{max-width:48ch}@media(min-width:768px){.ftr__in{grid-template-columns:.8fr 1.2fr;gap:24px 64px}}@media(max-width:767px){.ftr__messages{padding:20px}.ftr__connection{gap:24px}.ftr__phone-row small{flex-basis:100%;margin-left:30px}}
+
+/* Restrained footer: equal sections, no tinted contact panel or explanatory copy. */
+.ftr__connection{gap:26px}.ftr__messages{background:none;border-radius:0;padding:0}.ftr__messages h2{color:var(--c-ink);margin:0 0 10px}.ftr__messengers a,.ftr__messengers .ftr__social-pending{background:transparent;border:1px solid var(--c-line);color:var(--c-ink)}.ftr__social{margin-top:14px}.ftr__phone-row{color:var(--c-ink);margin-top:14px}.ftr__phone-row a{color:var(--c-ink)}.ftr__messengers a:hover{background:var(--c-bg)}@media(max-width:767px){.ftr__messages{padding:0}.ftr__connection{gap:26px}}
+
+/* Footer navigation kept together beneath the project description. */
+.ftr__nav{display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin-top:18px}
+.ftr__nav a{margin:0}
+
+/* Russian project wordmark, paired with the destination title. */
+.hdr__identity{display:flex;flex-direction:column;flex-shrink:0;gap:2px;padding-right:24px;border-right:1px solid var(--c-line)}
+.hdr__wordmark{display:flex;align-items:center;gap:9px;font-family:Arial,Helvetica,sans-serif;font-size:30px;font-weight:700;letter-spacing:-1.3px;line-height:1.1;color:var(--c-accent,#7b2035)}
+.hdr__descriptor{font-family:Arial,Helvetica,sans-serif;font-size:12px;letter-spacing:.7px;color:var(--c-muted);padding-left:34px}
+.hdr__brand{gap:24px}
+.hdr__in{min-height:86px}
+@media(max-width:600px){.hdr__brand{gap:14px}.hdr__identity{padding-right:14px}.hdr__wordmark{font-size:24px;gap:6px}.hdr__wordmark svg{width:20px;height:27px}.hdr__descriptor{font-size:10px;padding-left:26px}.hdr__brand .hdr__title{font-size:16px;white-space:normal;line-height:1.25}.hdr__in{min-height:76px;gap:10px}.hdr__back{font-size:13px}}
+
+/* Broader monastery silhouette; brand and destination share one baseline. */
+.hdr__identity{display:flex;flex-direction:row;align-items:center;padding-top:0;padding-bottom:0}
+.hdr__wordmark{gap:10px;line-height:1.15}
+.hdr__wordmark svg{width:42px;height:34px;flex-shrink:0}
+.hdr__brand{align-items:center}
+.hdr__brand .hdr__title{line-height:1.15}
+@media(max-width:600px){.hdr__wordmark svg{width:32px;height:28px}.hdr__wordmark{gap:7px}.hdr__identity{padding-right:12px}.hdr__brand{gap:12px}}
+
+/* Match the monastery silhouette to the optical baseline of the wordmark. */
+.hdr__wordmark{align-items:baseline}
+.hdr__wordmark svg{position:relative;top:1px;height:29px;width:37px}
+.ftr__wordmark{display:inline-flex;align-items:baseline;gap:10px;font-family:Arial,Helvetica,sans-serif;font-size:30px;font-weight:700;letter-spacing:-1.3px;line-height:1.15;color:var(--c-accent,#7b2035)}
+.ftr__wordmark svg{position:relative;top:1px;height:29px;width:37px;flex-shrink:0}
+@media(max-width:600px){.hdr__wordmark svg{width:30px;height:24px}}
+
+/* Review variant 19: approved monastery-and-wine mark with Trebuchet lettering. */
+.hdr__wordmark,.ftr__wordmark{display:inline-flex;align-items:center;line-height:1;letter-spacing:normal}
+.hdr__wordmark svg,.ftr__wordmark svg{display:block;position:static;width:195px;height:60px;flex-shrink:0}
+@media(max-width:600px){.hdr__wordmark svg{width:146px;height:45px}.hdr__identity{padding-right:10px}.hdr__brand{gap:10px}.hdr__brand .hdr__title{font-size:15px}}
+
+/* Selected English identity: Charter Black, simplified monastery-and-wine mark. */
+.hdr__wordmark svg,.ftr__wordmark svg{width:213px;height:60px}
+@media(max-width:600px){.hdr__wordmark svg{width:160px;height:45px}}
+
+/* Standalone header logo: destination is named in the main heading. */
+.hdr__identity{border-right:0;padding-right:0}
+
+/* Compact persistent project navigation, controlled by the header menu setting. */
+.menu summary{border:1px solid var(--c-line);border-radius:12px}
+.menu[open] summary{background:var(--c-paper)}
+.menu__list{top:calc(100% + 12px);min-width:245px;max-width:calc(100vw - 32px);border:1px solid var(--c-line)}
+.menu__list a{font-size:16px;color:var(--c-ink)}
+.menu__phone{border-top:1px solid var(--c-line);margin-top:4px}
+#footer-social,#footer-contact{scroll-margin-top:110px}
+
+/* Precisely centered geometric burger instead of a font glyph. */
+.menu summary{padding:0;box-sizing:border-box;display:flex;align-items:center;justify-content:center;line-height:1}
+.menu__icon{display:block;width:26px;height:26px;flex:none;margin:0}
+
+/* Final identity spacing: closer wordmark, raised by three design units. */
+.hdr__wordmark svg,.ftr__wordmark svg{width:189px;height:60px}
+@media(max-width:600px){.hdr__wordmark svg{width:142px;height:45px}}
+
+.wine-photo-note{position:absolute;bottom:12px;left:12px;right:12px;padding:7px 9px;border-radius:8px;background:rgba(247,245,240,.95);color:#6D6460;text-align:center;font-size:13px;line-height:1.3}.bottle-placeholder{display:block;width:100%;height:100%;object-fit:contain}.card--wine .card__sub{overflow-wrap:anywhere}
+
+.frame--wine img,.product-image img{mix-blend-mode:multiply}.product-image{isolation:isolate}.wine-catalog-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px}.wine-catalog-layout .tiles{padding:0;width:100%}.wine-catalog-layout .grid{grid-template-columns:repeat(3,minmax(0,1fr))}.wine-catalog-layout aside label{display:block;margin-bottom:12px}.wine-catalog-layout select{width:100%;padding:10px;font:inherit}@media(max-width:899px){.wine-catalog-layout{grid-template-columns:1fr}.wine-catalog-layout .grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Typography approved from the Bolnisi reference: Playfair Display Medium. */
+h1,h2,h3,.card__title,.hdr__title,.pp__name,.country-group__title{font-family:var(--font-head);font-weight:500}
+.card--wine .card__title,.product-card .card__title,.product-card h2,.product-card h3,.pp--wine h2,.shop-detail-text h2,.detail h1{font-family:var(--font-head);font-weight:500;font-synthesis:none}
+.wine-initial{font-family:inherit;font-weight:inherit}
+
+/* Brand asset is managed by the editor, identical in header and footer. */
+.hdr__logo,.ftr__logo{width:189px;height:60px;max-width:100%;object-fit:contain;display:block}
+
+[id^="block-"],#monastery-about,#directions,#footer-social,#footer-contact{scroll-margin-top:100px}
+
+/* Shared directions card: map first, compact destination/route bar below. */
+.directions-card .map__head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px; }
+.directions-card .map__h { margin:0; font-size:var(--fs-title-m); }
+.directions-card__surface { background:var(--c-paper); border:1px solid var(--c-line); border-radius:var(--radius); overflow:hidden; }
+.directions-card__surface > .map__box { border-radius:0; }
+.directions-card__surface > .map__box.is-map { height:390px; }
+.directions-card__footer { display:flex; align-items:center; justify-content:space-between; gap:20px 32px; padding:20px 24px; }
+.directions-card__details { flex:1; min-width:0; overflow-wrap:anywhere; }
+.directions-card__details p { margin:0; }
+.directions-card__name { font-family:var(--font-body,Arial,sans-serif); font-size:18px; font-weight:600; line-height:1.4; }
+.directions-card__address { font-size:15px; line-height:1.5; color:var(--c-mute); margin-top:5px!important; white-space:pre-line; }
+.directions-card__note { font-size:14px; line-height:1.5; color:var(--c-mute); margin-top:8px!important; }
+.directions-card__route { flex:0 0 auto; white-space:normal; text-align:center; max-width:100%; }
+.leaflet-tooltip.directions-card__pin-label { font-family:Arial,Helvetica,sans-serif; font-size:14px; font-weight:600; line-height:1.35; white-space:normal; width:max-content; max-width:min(260px,60vw); text-align:center; padding:8px 12px; color:#303C46; background:#fff; border-color:#D9E1E6; border-radius:8px; box-shadow:0 2px 6px #0002; }
+@media (min-width:600px) and (max-width:1023px) { .directions-card__surface > .map__box.is-map { height:320px; } }
+@media (max-width:599px) {
+  .directions-card .map__head { align-items:center; gap:10px; }
+  .directions-card .map__expand { flex:0 0 auto; font-size:13px; padding:8px; }
+  .directions-card__surface > .map__box.is-map { height:280px; }
+  .directions-card__footer { flex-direction:column; align-items:stretch; gap:16px; padding:18px; }
+  .directions-card__name { font-size:17px; }
+  .directions-card__route { width:100%; box-sizing:border-box; }
+}

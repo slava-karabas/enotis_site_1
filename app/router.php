@@ -31,6 +31,7 @@ function route(string $uri): void
         echo view('updating');
         return;
     }
+    if (integration_machine_route($path)) { return; }
     // Мастер установки (раздел 14.1): /install → /admin/install (там живёт сессия админки).
     // Чистая установка без наполнения: главная тоже ведёт в мастер.
     if ($path === '/install' || ($path === '/' && install_open() && site_is_empty())) {
@@ -122,6 +123,9 @@ function resolve_page(array $segs): ?array
     $n = count($segs);
     active_tab(null);
     feed(null);
+    if ($n === 1 && $segs[0] === 'sources' && is_file(APP_DIR . '/source_credits.json')) {
+        return page_base('page_sources', '/sources', null) + ['title' => 'Источники и фотографии — ' . site_title(), 'back' => url('/')];
+    }
     if ($n === 2 && $segs[0] === 'doc') {
         $d = doc($segs[1]);
         return $d ? page_base('page_doc', '/doc/' . $segs[1], null) + ['doc' => $d,
@@ -139,6 +143,12 @@ function resolve_page(array $segs): ?array
     }
 
     $tabs = visible_tabs();
+    // Aggregate view without duplicating the regional content.
+    if($segs===['catalog'])return page_base('page_wine_catalog','/catalog',null)+['title'=>presentation('catalog_title').' — '.site_title(),'back'=>url('/')];
+    if ($tabs && $n === 1 && $segs[0] === 'all') {
+        active_tab(['id' => -1, 'slug' => 'all', 'title' => 'Все']);
+        return array_replace(home_page(null), ['local' => '/all', 'path' => '/all', 'title' => 'Все монастыри — ' . site_title()]);
+    }
     if ($tabs && $n > 0) {
         foreach ($tabs as $tab) {
             if ($tab['slug'] === $segs[0]) {
@@ -149,7 +159,7 @@ function resolve_page(array $segs): ?array
         }
     }
     // Главная и плитки общих блоков над табами: активен первый таб, адреса без префикса.
-    active_tab($tabs[0] ?? null);
+    active_tab($n === 0 && $tabs ? ['id' => -1, 'slug' => 'all', 'title' => 'Все'] : ($tabs[0] ?? null));
     return $n === 0 ? home_page(null) : resolve_in(root_blocks(0), $segs);
 }
 
