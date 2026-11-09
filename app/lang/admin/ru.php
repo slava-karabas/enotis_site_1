@@ -129,7 +129,7 @@ return [
     'field.size'                => 'Размер плиток',
     'field.name'                => 'Название',
     'field.tile_subtitle'       => 'Подпись',
-    'field.place'               => 'Как добраться',
+    'field.place'               => 'Адрес',
     'field.lat'                 => 'Широта',
     'field.lng'                 => 'Долгота',
     'field.check_map'           => 'Проверить на карте',

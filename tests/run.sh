@@ -4,6 +4,7 @@ cd "$(dirname "$0")/.."
 find app bin public tests -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
 php bin/check-lang.php
 php tests/map-template.php
+php tests/directions-card.php
 php tests/contacts.php
 php tests/integrations.php
 for kind in sample aggregator settings photo; do

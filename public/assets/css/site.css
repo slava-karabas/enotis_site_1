@@ -414,3 +414,27 @@ h1,h2,h3,.card__title,.hdr__title,.pp__name,.country-group__title{font-family:va
 .hdr__logo,.ftr__logo{width:189px;height:60px;max-width:100%;object-fit:contain;display:block}
 
 [id^="block-"],#monastery-about,#directions,#footer-social,#footer-contact{scroll-margin-top:100px}
+
+/* Shared directions card: map first, compact destination/route bar below. */
+.directions-card .map__head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:14px; }
+.directions-card .map__h { margin:0; font-size:var(--fs-title-m); }
+.directions-card__surface { background:var(--c-paper); border:1px solid var(--c-line); border-radius:var(--radius); overflow:hidden; }
+.directions-card__surface > .map__box { border-radius:0; }
+.directions-card__surface > .map__box.is-map { height:390px; }
+.directions-card__footer { display:flex; align-items:center; justify-content:space-between; gap:20px 32px; padding:20px 24px; }
+.directions-card__details { flex:1; min-width:0; overflow-wrap:anywhere; }
+.directions-card__details p { margin:0; }
+.directions-card__name { font-family:var(--font-body,Arial,sans-serif); font-size:18px; font-weight:600; line-height:1.4; }
+.directions-card__address { font-size:15px; line-height:1.5; color:var(--c-mute); margin-top:5px!important; white-space:pre-line; }
+.directions-card__note { font-size:14px; line-height:1.5; color:var(--c-mute); margin-top:8px!important; }
+.directions-card__route { flex:0 0 auto; white-space:normal; text-align:center; max-width:100%; }
+.leaflet-tooltip.directions-card__pin-label { font-family:Arial,Helvetica,sans-serif; font-size:14px; font-weight:600; line-height:1.35; white-space:normal; width:max-content; max-width:min(260px,60vw); text-align:center; padding:8px 12px; color:#303C46; background:#fff; border-color:#D9E1E6; border-radius:8px; box-shadow:0 2px 6px #0002; }
+@media (min-width:600px) and (max-width:1023px) { .directions-card__surface > .map__box.is-map { height:320px; } }
+@media (max-width:599px) {
+  .directions-card .map__head { align-items:center; gap:10px; }
+  .directions-card .map__expand { flex:0 0 auto; font-size:13px; padding:8px; }
+  .directions-card__surface > .map__box.is-map { height:280px; }
+  .directions-card__footer { flex-direction:column; align-items:stretch; gap:16px; padding:18px; }
+  .directions-card__name { font-size:17px; }
+  .directions-card__route { width:100%; box-sizing:border-box; }
+}

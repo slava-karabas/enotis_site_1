@@ -128,7 +128,7 @@ return [
     'field.size'                => 'Taille des tuiles',
     'field.name'                => 'Nom',
     'field.tile_subtitle'       => 'Légende',
-    'field.place'               => 'Comment s\'y rendre',
+    'field.place'               => 'Adresse',
     'field.lat'                 => 'Latitude',
     'field.lng'                 => 'Longitude',
     'field.check_map'           => 'Vérifier sur la carte',

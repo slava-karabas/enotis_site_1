@@ -128,7 +128,7 @@ return [
     'field.size'                => 'ფილების ზომა',
     'field.name'                => 'სახელწოდება',
     'field.tile_subtitle'       => 'წარწერა',
-    'field.place'               => 'როგორ მივიდეთ',
+    'field.place'               => 'მისამართი',
     'field.lat'                 => 'განედი',
     'field.lng'                 => 'გრძედი',
     'field.check_map'           => 'რუკაზე შემოწმება',

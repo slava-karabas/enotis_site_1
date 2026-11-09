@@ -39,6 +39,7 @@
     stack.push({ ov: ov, onClose: onClose, prevFocus: prevFocus });
     dialog.focus();
     initMinimaps(ov);
+    watchMaps(ov);
     watchBarTitle(dialog);
   }
 
@@ -52,7 +53,7 @@
   }
 
   document.addEventListener('keydown', function (e) {
-    if (!stack.length) return;
+    if (!stack.length || document.querySelector('dialog.map__dialog[open]')) return;
     if (e.key === 'Escape') { e.preventDefault(); closeTop(false); return; }
     if (e.key !== 'Tab') return;
     var dialog = $('[role="dialog"]', stack[stack.length - 1].ov);
@@ -259,14 +260,15 @@
       var expand = section && $('[data-map-expand]', section);
       box.innerHTML = '';
       box.classList.add('is-map');
-      map = L.map(box, { zoomControl: true });
+      var placeMap = box.hasAttribute('data-place-map');
+      map = L.map(box, { zoomControl: true, dragging: !placeMap || !L.Browser.mobile });
       tiles(map, box.getAttribute('data-attr'));
       wheelAfterClick(map);
       var group = cluster ? L.markerClusterGroup({ showCoverageOnHover: false }) : L.featureGroup();
       var dialog = null, restoreFocus = true, originalParent = null, originalNext = null, originalView = null;
       points.forEach(function (p) {
         var m = marker(p.lat, p.lng, p.title);
-        m.bindTooltip(escapeHtml(p.title), { direction: 'top', offset: [0, -32] });
+        m.bindTooltip(escapeHtml(p.title), { direction: 'top', offset: [0, -32], permanent: placeMap && points.length === 1, className: placeMap ? 'directions-card__pin-label' : '' });
         var popup = document.createElement('div');
         var title = document.createElement('strong');
         title.className = 'map__popup-title'; title.textContent = p.title;
@@ -293,7 +295,7 @@
       group.addTo(map);
       function fit() {
         map.invalidateSize({ pan:false });
-        if (points.length === 1) map.setView([points[0].lat, points[0].lng], 13, { animate:false });
+        if (points.length === 1) map.setView([points[0].lat, points[0].lng], placeMap ? 15 : 13, { animate:false });
         else map.fitBounds(group.getBounds(), { padding:[36,36], maxZoom:13, animate:false });
       }
       fit();

@@ -128,7 +128,7 @@ return [
     'field.size'                => 'Tile size',
     'field.name'                => 'Name',
     'field.tile_subtitle'       => 'Caption',
-    'field.place'               => 'Getting there',
+    'field.place'               => 'Address',
     'field.lat'                 => 'Latitude',
     'field.lng'                 => 'Longitude',
     'field.check_map'           => 'Check on map',
