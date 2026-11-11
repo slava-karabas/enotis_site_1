@@ -21,7 +21,7 @@ const FIELD_MAX = [
     'wine'     => ['title' => 60, 'subtitle' => 90, 'grape' => 60, 'text' => 3000],
     'map'      => ['title' => 60],
     'service'  => ['title' => 60, 'text' => 500, 'price_note' => 40],
-    'settings' => ['site_title' => 40, 'seo_title' => 60, 'seo_description' => 160],
+    'settings' => ['site_title' => 40, 'seo_title' => 60, 'seo_description' => 160, 'about_body' => 4000],
     'tab'      => ['title' => 30],
     'domain'   => ['site_title' => 40],
 ];
@@ -124,6 +124,8 @@ function site_export(): array
         'languages' => ['main' => $main, 'on' => $on],
         'settings'  => [
             'appearance'      => presentation_settings(),
+            'palomnik_unified' => ($set['palomnik_unified'] ?? '0') === '1',
+            'about_body' => (object) ($setI18n['about_body'] ?? []),
             'show_products'   => setting('show_products','1')==='1',
             'site_title'      => (object) ($setI18n['site_title'] ?? []),
             'seo_title'       => (object) ($setI18n['seo_title'] ?? []),
@@ -469,6 +471,7 @@ function site_write(array $site, array $opts = []): array
     $max = (int) $pdo->query('SELECT COALESCE(MAX(id), 0) FROM elements')->fetchColumn();
     $max = max($max, max_tree_id($site['blocks'] ?? []));
     $sMax = (int) $pdo->query('SELECT COALESCE(MAX(id), 0) FROM sections')->fetchColumn();
+    $savedAbout = $pdo->query("SELECT lang,value FROM settings_i18n WHERE key='about_body'")->fetchAll(PDO::FETCH_KEY_PAIR);
     foreach (['element_i18n', 'elements', 'settings_i18n', 'doc_i18n',
               'domain_i18n', 'domains', 'section_i18n', 'sections'] as $t) {
         $pdo->exec("DELETE FROM $t");
@@ -523,6 +526,7 @@ function site_write(array $site, array $opts = []): array
         'footer_telegram' => nn($site['footer']['telegram'] ?? null),
         // Оформление (раздел 10.5): только свои файлы из public/uploads/brand.
         'logo_path'       => brand_path($s['logo']['url'] ?? null),
+        'palomnik_unified' => array_key_exists('palomnik_unified',$s) ? (!empty($s['palomnik_unified']) ? '1' : '0') : setting('palomnik_unified','0'),
         'logo_with_title' => ($s['logo']['with_title'] ?? true) ? '1' : '0',
         'favicon_path'    => brand_path($s['favicon']['url'] ?? null),
         'og_image_path'   => brand_path($s['og_image']['url'] ?? null),
@@ -534,8 +538,8 @@ function site_write(array $site, array $opts = []): array
     foreach ($plain as $k => $v) {
         $st->execute([$k, $v]);
     }
-    foreach (['site_title', 'seo_title', 'seo_description'] as $k) {
-        put_i18n('settings_i18n', ['key' => $k], ['value' => $s[$k] ?? []]);
+    foreach (['site_title', 'seo_title', 'seo_description', 'about_body'] as $k) {
+        put_i18n('settings_i18n', ['key' => $k], ['value' => $s[$k] ?? ($k === 'about_body' ? $savedAbout : [])]);
     }
 
     $pdo->exec('UPDATE social_links SET url = NULL');
