@@ -53,7 +53,7 @@
   }
 
   document.addEventListener('keydown', function (e) {
-    if (!stack.length) return;
+    if (!stack.length || document.querySelector('.map__dialog[open]')) return;
     if (e.key === 'Escape') { e.preventDefault(); closeTop(false); return; }
     if (e.key !== 'Tab') return;
     var dialog = $('[role="dialog"]', stack[stack.length - 1].ov);
@@ -87,6 +87,15 @@
   var pageTitle = document.title;
   var current = null;
 
+  function syncLanguageLinks() {
+    var nav = $('.language-tabs');
+    if (!nav) return;
+    var plain = location.pathname.replace(/^\/(ru|ka|en|fr)(?=\/|$)/, '') || '/';
+    $$('a[hreflang]', nav).forEach(function (a) {
+      var code = a.getAttribute('hreflang');
+      a.href = (code === nav.dataset.defaultLang ? '' : '/' + code) + plain + '?switch=1';
+    });
+  }
   function openPopup(slug, push) {
     var tpl = document.getElementById('pp-' + slug);
     if (!tpl) return false;
@@ -96,6 +105,7 @@
     document.body.appendChild(frag);
     var url = tpl.dataset.url;
     if (push) history.pushState({ popup: slug }, '', url);
+    syncLanguageLinks();
     document.title = tpl.dataset.title || pageTitle;
     current = ov;
     openOverlay(ov, function (fromHistory) {
@@ -104,7 +114,7 @@
       document.title = pageTitle;
       if (!fromHistory) {
         if (history.state && history.state.popup) history.back();
-        else history.replaceState(null, '', pageUrl);
+        else { history.replaceState(null, '', pageUrl); syncLanguageLinks(); }
       }
     });
     return true;
@@ -121,6 +131,7 @@
     if (current) closeTop(true);
     if (e.state && e.state.tab && e.state.tab !== tabUrl) loadTab(e.state.tab, false);
     if (slug) openPopup(slug, false);
+    syncLanguageLinks();
   });
 
   /* ---------- Табы без перезагрузки (раздел 5.4): лента таба приходит фрагментом ---------- */

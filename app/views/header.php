@@ -37,7 +37,7 @@ $plain = preg_replace('~^/(' . implode('|', LANGS) . ')(?=/|$)~', '', $here) ?: 
 <?php endif ?>
     </a>
 <?php if (count($langs) > 1): ?>
-    <nav class="langs language-tabs" aria-label="<?= e(t('nav.language')) ?>">
+    <nav class="langs language-tabs" data-default-lang="<?=e(default_lang())?>" aria-label="<?= e(t('nav.language')) ?>">
 <?php   foreach ($langs as $i => $l): ?>
       <a href="<?= e(url($plain, $l['code'])) ?>?switch=1" hreflang="<?= e($l['code']) ?>" lang="<?= e($l['code']) ?>" title="<?= e($l['name']) ?>"<?= $l['code'] === current_lang() ? ' aria-current="true"' : '' ?>><?= e($l['code'] === 'ka' ? 'GE' : strtoupper($l['code'])) ?></a>
 <?php   endforeach ?>
