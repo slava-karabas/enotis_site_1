@@ -39,6 +39,7 @@
     stack.push({ ov: ov, onClose: onClose, prevFocus: prevFocus });
     dialog.focus();
     initMinimaps(ov);
+    watchMaps(ov);
     watchBarTitle(dialog);
   }
 
@@ -266,7 +267,7 @@
       var dialog = null, restoreFocus = true, originalParent = null, originalNext = null, originalView = null;
       points.forEach(function (p) {
         var m = marker(p.lat, p.lng, p.title);
-        m.bindTooltip(escapeHtml(p.title), { direction: 'top', offset: [0, -32] });
+        m.bindTooltip(escapeHtml(p.title), { direction: 'top', offset: [0, -32], permanent: box.hasAttribute('data-place-map'), className: box.hasAttribute('data-place-map') ? 'directions-card__pin-label' : '' });
         var popup = document.createElement('div');
         var title = document.createElement('strong');
         title.className = 'map__popup-title'; title.textContent = p.title;

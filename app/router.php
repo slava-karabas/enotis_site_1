@@ -121,6 +121,9 @@ function route(string $uri): void
 function resolve_page(array $segs): ?array
 {
     $n = count($segs);
+    if ($segs === ['about'] && setting('palomnik_unified') === '1') {
+        return page_base('page_about', '/about', null) + ['title'=>presentation('menu_about').' — '.site_title(), 'back'=>url('/')];
+    }
     active_tab(null);
     feed(null);
     if ($n === 1 && $segs[0] === 'sources' && is_file(APP_DIR . '/source_credits.json')) {
