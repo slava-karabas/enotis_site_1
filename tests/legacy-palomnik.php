@@ -28,7 +28,7 @@ function snapshot(PDO $p): array {
 $before=snapshot($old);$old=null;
 require dirname(__DIR__).'/app/bootstrap.php';
 function verify(bool $ok,string $why):void {if(!$ok)throw new RuntimeException($why);}
-$p=db();verify(schema_version($p)===7,'schema 1 to 7');verify(snapshot($p)===$before,'legacy rows changed');
+$p=db();verify(schema_version($p)===8,'schema 1 to 8');verify(snapshot($p)===$before,'legacy rows changed');
 verify((bool)glob($dir.'/backups/*v001.sqlite'),'pre-migration full database backup');
 verify(setting('custom-preserved')==='untouched','private/unrelated settings preserved');
 verify(setting('header_burger')==='on','missionary menu enabled');
